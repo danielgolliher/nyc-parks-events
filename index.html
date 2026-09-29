@@ -12,6 +12,16 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<script>
+// Google Analytics, loaded only on the live site so local testing doesn't count
+if (/(^|\.)parkevents\.nyc$/.test(location.hostname)) {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-M6RK1SPK4Q');
+  document.head.appendChild(Object.assign(document.createElement('script'), { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-M6RK1SPK4Q' }));
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
@@ -456,7 +466,7 @@ footer .src { max-width: 460px; }
       <span>Get a weekly email with what's coming up in NYC parks.</span>
       <button class="btn acc signup" type="button" data-signup="footer"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
     </div>
-    <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go.</p>
+    <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go. This site uses Google Analytics to count visits and see which events people look at.</p>
   </div>
 </footer>
 
@@ -491,6 +501,10 @@ footer .src { max-width: 460px; }
   const LIVE_META = `https://data.cityofnewyork.us/api/views/${DATASET}.json`;
 
   const $ = (id) => document.getElementById(id);
+  // Analytics (Google Analytics 4). A no-op off the live site, where gtag isn't defined.
+  // Parameter names avoid GA's reserved ones (e.g. "value") and must be registered as custom dimensions to show in reports.
+  const track = (name, data) => { try { if (window.gtag) window.gtag('event', name, data || {}); } catch (_) {} };
+  const evData = (e, from) => ({ event_title: e.t.slice(0, 100), park: (e.p || e.l || '').slice(0, 100), borough: e.b || 'Unknown', ...(from ? { opened_from: from } : {}) });
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const https = (u) => u ? u.replace(/^http:\/\//, 'https://') : '';
   const ent = document.createElement('textarea');
@@ -709,13 +723,24 @@ footer .src { max-width: 460px; }
     $('cats').innerHTML = CATS.map((c) => `<button class="pill" data-c="${esc(c)}" aria-pressed="${S.cats.has(c)}">${esc(c)} <small>${catCount[c]}</small></button>`).join('');
     map.querySelectorAll('path').forEach((p) => p.classList.toggle('on', p.dataset.b === S.boro));
   }
-  const setBoro = (b) => { S.boro = b; save(); update(); };
-  $('boros').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setBoro(b.dataset.b || null); });
-  $('tods').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { S.tod = b.dataset.t || null; save(); update(); } });
-  $('cats').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c; S.cats.has(c) ? S.cats.delete(c) : S.cats.add(c); save(); update(); });
-  let qt; $('q').addEventListener('input', (e) => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim().toLowerCase(); update(); }, 120); });
-  $('hsearch').addEventListener('submit', (e) => { e.preventDefault(); S.q = $('q').value.trim().toLowerCase(); update(); $('events').scrollIntoView({ behavior: 'smooth' }); });
-  $('clear').addEventListener('click', () => { Object.assign(S, { day: 'all', boro: null, tod: null, q: '' }); S.cats.clear(); $('q').value = ''; save(); update(); });
+  const setBoro = (b, via) => { S.boro = b; save(); update(); track('filter_borough', { filter_value: b || 'All five', selected_via: via }); };
+  $('boros').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setBoro(b.dataset.b || null, 'pill'); });
+  $('tods').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { S.tod = b.dataset.t || null; save(); update(); track('filter_time_of_day', { filter_value: b.textContent }); } });
+  $('cats').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const c = b.dataset.c;
+    if (S.cats.has(c)) S.cats.delete(c); else { S.cats.add(c); track('filter_interest', { filter_value: c }); }
+    save(); update();
+  });
+  // Searches are logged once typing pauses (or on Search), and only once per distinct query
+  let qt, qTrack, lastQ = '';
+  const trackQ = () => { clearTimeout(qTrack); if (S.q.length >= 3 && S.q !== lastQ) { lastQ = S.q; track('search', { search_term: S.q.slice(0, 100), results_count: shown.length }); } };
+  $('q').addEventListener('input', (e) => {
+    clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim().toLowerCase(); update(); }, 120);
+    clearTimeout(qTrack); qTrack = setTimeout(trackQ, 1500);
+  });
+  $('hsearch').addEventListener('submit', (e) => { e.preventDefault(); S.q = $('q').value.trim().toLowerCase(); update(); trackQ(); $('events').scrollIntoView({ behavior: 'smooth' }); });
+  $('clear').addEventListener('click', () => { Object.assign(S, { day: 'all', boro: null, tod: null, q: '' }); S.cats.clear(); $('q').value = ''; save(); update(); track('clear_filters'); });
 
   // Upcoming / Past switch, shown above the feed and in the map
   function renderFeed() {
@@ -729,6 +754,7 @@ footer .src { max-width: 460px; }
     const b = e.target.closest('[data-feed] button');
     if (!b || b.dataset.f === S.feed) return;
     S.feed = b.dataset.f; S.day = 'all'; update();
+    track('switch_feed', { filter_value: S.feed === 'past' ? 'Past' : 'Upcoming', view: b.closest('#mapx') ? 'map' : 'feed' });
   });
 
   // Days that have at least one event in the current feed; the Past feed runs newest first
@@ -757,6 +783,7 @@ footer .src { max-width: 460px; }
     const b = e.target.closest('button'); if (!b || b.disabled) return;
     if (b.hasAttribute('data-cal')) return cal.hidden ? openCal(b) : closeCal();
     S.day = b.dataset.d; update();
+    track('filter_day', { filter_value: S.day, selected_via: 'pill', view: b.closest('#mapx') ? 'map' : 'feed' });
   };
   $('days').addEventListener('click', pickDay);
   $('mdays').addEventListener('click', pickDay);
@@ -802,6 +829,7 @@ footer .src { max-width: 460px; }
     const b = e.target.closest('button[data-d]'); if (!b || b.disabled) return;
     const row = calFrom && calFrom.closest('.pills');
     S.day = b.dataset.d; closeCal(); update();
+    track('filter_day', { filter_value: S.day, selected_via: 'calendar', view: row && row.closest('#mapx') ? 'map' : 'feed' });
     // Bring the chosen day's pill into view in the row the calendar was opened from
     const pill = row && row.querySelector(`[data-d="${S.day}"]`);
     if (pill) row.scrollTo({ left: pill.offsetLeft - row.offsetLeft - 16, behavior: 'smooth' });
@@ -894,13 +922,14 @@ footer .src { max-width: 460px; }
   }
   $('list').addEventListener('mouseover', (ev) => { const c = ev.target.closest('.card'); highlight(c ? c.dataset.id : null); });
   $('list').addEventListener('mouseleave', () => highlight(null));
-  $('list').addEventListener('click', (ev) => { const c = ev.target.closest('.card'); if (c) openDrawer(c.dataset.id); });
-  $('list').addEventListener('keydown', (ev) => { const c = ev.target.closest('.card'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openDrawer(c.dataset.id); } });
+  $('list').addEventListener('click', (ev) => { const c = ev.target.closest('.card'); if (c) openDrawer(c.dataset.id, 'feed'); });
+  $('list').addEventListener('keydown', (ev) => { const c = ev.target.closest('.card'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openDrawer(c.dataset.id, 'feed'); } });
 
   const drawer = $('drawer'), scrim = $('scrim');
-  let lastFocus = null;
-  function openDrawer(id) {
+  let lastFocus = null, curEv = null;
+  function openDrawer(id, from) {
     const e = byId[id]; if (!e) return;
+    curEv = e; track('open_event', evData(e, from));
     const d = dateOf(e.day), em = endMin(e);
     drawer.innerHTML = `
       <div class="dbar"><span class="bdg">${esc(e.famLabel)} · ${esc(e.b || 'NYC')}</span><button class="iconbtn" id="dclose" aria-label="Close">${I.x}Close</button></div>
@@ -913,8 +942,8 @@ footer .src { max-width: 460px; }
         ${e.ph ? `<div class="fact"><div class="tile">${I.phone}</div><div><strong style="user-select:all">${esc(e.ph)}</strong><small>Contact</small></div></div>` : ''}
       </div>
       <div class="dact">
-        ${e.r ? `<a class="btn acc" href="${esc(e.r)}" target="_blank" rel="noopener">Register ${I.ext}</a>` : ''}
-        ${e.u ? `<a class="btn ${e.r ? 'sec' : 'acc'}" href="${esc(e.u)}" target="_blank" rel="noopener">Event page ${I.ext}</a>` : ''}
+        ${e.r ? `<a class="btn acc" href="${esc(e.r)}" target="_blank" rel="noopener" data-track="click_register">Register ${I.ext}</a>` : ''}
+        ${e.u ? `<a class="btn ${e.r ? 'sec' : 'acc'}" href="${esc(e.u)}" target="_blank" rel="noopener" data-track="click_event_page">Event page ${I.ext}</a>` : ''}
         ${e.y != null ? `<button class="btn sec" type="button" id="dmap">${I.map}Show on map</button>` : ''}
       </div>
       ${e.rd ? `<div class="reg-note">${esc(e.rd)}</div>` : ''}
@@ -926,7 +955,7 @@ footer .src { max-width: 460px; }
     requestAnimationFrame(() => { scrim.classList.add('show'); drawer.classList.add('show'); });
     drawer.scrollTop = 0;
     $('dclose').onclick = closeDrawer;
-    if ($('dmap')) $('dmap').onclick = () => { closeDrawer(); openMap(e); };
+    if ($('dmap')) $('dmap').onclick = () => { track('show_on_map', evData(e)); closeDrawer(); openMap(e); };
     $('dclose').focus({ preventScroll: true });
     highlight(id);
   }
@@ -938,6 +967,7 @@ footer .src { max-width: 460px; }
     if (lastFocus) lastFocus.focus({ preventScroll: true });
   }
   scrim.addEventListener('click', closeDrawer);
+  drawer.addEventListener('click', (ev) => { const a = ev.target.closest('[data-track]'); if (a && curEv) track(a.dataset.track, evData(curEv)); });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (!cal.hidden) return closeCal(true);
@@ -957,8 +987,8 @@ footer .src { max-width: 460px; }
   map.addEventListener('mouseleave', () => (tip.hidden = true));
   map.addEventListener('click', (ev) => {
     const c = ev.target.closest('circle');
-    if (c) { tip.hidden = true; openDrawer(c.dataset.id); return; }
-    const p = ev.target.closest('path'); if (p) setBoro(S.boro === p.dataset.b ? null : p.dataset.b);
+    if (c) { tip.hidden = true; openDrawer(c.dataset.id, 'small map'); return; }
+    const p = ev.target.closest('path'); if (p) setBoro(S.boro === p.dataset.b ? null : p.dataset.b, 'small map');
   });
 
   // ---- Map explorer: a full-screen, zoomable street map of the current feed ------
@@ -1118,8 +1148,14 @@ footer .src { max-width: 460px; }
   }
   $('mxclose').addEventListener('click', () => closeMap());
   addEventListener('popstate', () => closeMap(true));
-  document.addEventListener('click', (e) => { if (e.target.closest('[data-openmap]')) openMap(); });
-  $('mxlist').addEventListener('click', (e) => { const r = e.target.closest('.mrow'); if (r) openDrawer(r.dataset.id); });
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-openmap]'); if (!b) return;
+    track('open_map', { opened_from: b.classList.contains('fab') ? 'floating button' : 'sidebar' });
+    openMap();
+  });
+  // Email signup buttons aren't wired up yet, but counting clicks shows how much interest there is
+  document.addEventListener('click', (e) => { const b = e.target.closest('.signup'); if (b) track('email_signup_click', { placement: b.dataset.signup }); });
+  $('mxlist').addEventListener('click', (e) => { const r = e.target.closest('.mrow'); if (r) openDrawer(r.dataset.id, 'map'); });
   $('mxhead').addEventListener('click', (e) => {
     if (e.target.closest('#mxall')) { selLoc = null; drawMarkers(); renderPanel(); return; }
     $('mxpanel').classList.toggle('open');

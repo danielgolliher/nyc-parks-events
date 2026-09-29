@@ -29,6 +29,10 @@ NYC Parks updates the events dataset automatically once a day, typically a littl
 | `img/` | Event photos, resized to 320px WebP |
 | `build/build.py` | Refreshes everything in `data/` and `img/` |
 
+## Analytics
+
+Google Analytics 4 (`G-M6RK1SPK4Q`) loads only on parkevents.nyc, so local runs aren't counted. Besides page views, the site sends these events: `open_event`, `click_register`, `click_event_page`, `show_on_map`, `open_map`, `search`, `filter_borough`, `filter_time_of_day`, `filter_interest`, `filter_day`, `switch_feed`, `clear_filters`, and `email_signup_click`. Their parameters (`event_title`, `park`, `borough`, `opened_from`, `filter_value`, `selected_via`, `view`, `placement`) are registered as event-scoped custom dimensions in GA so they show up in reports.
+
 ## Run locally
 
 ```bash
