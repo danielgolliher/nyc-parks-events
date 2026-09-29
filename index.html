@@ -3,7 +3,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Every public event in NYC parks over the next two weeks, updated daily from NYC Open Data.">
-<title>Out in the Parks</title>
+<meta name="theme-color" content="#f4f5f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#131517" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="What's on in NYC Parks">
+<meta property="og:description" content="Every public event in NYC parks over the next two weeks, updated daily from NYC Open Data.">
+<title>What's on in NYC Parks</title>
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
@@ -49,8 +57,9 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(
 body.lock { overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; }
 a { color: inherit; }
+button, a, .card { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.gut { padding-inline: 16px; }
+.gut { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
 .wrap { max-width: 1080px; margin: 0 auto; }
 svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -91,7 +100,7 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .hero p { margin: 4px 0 0; font-size: 16px; line-height: 1.55; font-weight: 500; text-wrap: pretty; max-width: 46ch; }
 .hero p b { color: var(--accent); font-weight: 600; }
 .hsearch { display: flex; gap: 8px; margin-top: 8px; max-width: 420px; }
-.hsearch input { flex: 1; min-width: 0; font: 500 15px var(--font); color: var(--ink); background: color-mix(in srgb, var(--card) 85%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; }
+.hsearch input { flex: 1; min-width: 0; font: 500 16px var(--font); color: var(--ink); background: color-mix(in srgb, var(--card) 85%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; }
 .hsearch input::placeholder { color: var(--faint); }
 .hsearch input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .btn { border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; white-space: nowrap; }
@@ -133,9 +142,11 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .cards { display: grid; gap: 12px; padding-bottom: 16px; }
 
 .card { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 14px 16px; box-shadow: var(--shadow); text-align: left; width: 100%; transition: border-color .15s, transform .15s; }
-.card:hover, .card.hl { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
-.card:hover { transform: translateY(-1px); }
-.card.past { opacity: .55; }
+.card.hl { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+@media (hover: hover) {
+  .card:hover { border-color: color-mix(in srgb, var(--accent) 55%, transparent); transform: translateY(-1px); }
+}
+.card.past .cover { filter: grayscale(.7); }
 .cb { flex: 1; min-width: 0; display: grid; gap: 5px; align-content: start; }
 .ct { font-size: 14px; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; display: flex; gap: 6px; flex-wrap: wrap; }
 .card h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; text-wrap: pretty; overflow-wrap: anywhere; }
@@ -182,12 +193,57 @@ aside::-webkit-scrollbar { display: none; }
 #map text { font: 600 10.5px var(--font); fill: var(--muted); pointer-events: none; }
 #map circle { fill: var(--accent); fill-opacity: .7; cursor: pointer; }
 #map circle.hl { fill: var(--ink); fill-opacity: 1; stroke: var(--accent); stroke-width: 3; }
-.src { font-size: 12px; color: var(--muted); line-height: 1.5; padding-inline: 4px; }
+.mapwrap { display: grid; gap: 8px; }
+.mapwrap .expand { width: 100%; padding: 13px 16px; font-size: 15px; border-radius: 12px; box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent); }
+.mapwrap .expand svg.i { width: 18px; height: 18px; }
+.src { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0; }
 .src a { color: var(--muted); }
 
+/* Upcoming / Past switch */
+.seg { display: inline-flex; background: var(--card-2); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--muted); display: inline-flex; gap: 6px; align-items: baseline; }
+.seg button small { font: 400 11px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.seg button[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.ehead .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.feednote { margin: 14px 0 0; font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+/* Email signup */
+.btn.sm { padding: 7px 12px; font-size: 13px; border-radius: 8px; }
+.promo { background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 14px; padding: 16px; display: grid; gap: 10px; justify-items: start; }
+.promo b { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.promo p { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+.promo.feed { display: none; margin-bottom: 16px; }
+.dpromo { border-top: 1px solid var(--line); padding-top: 16px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+
+/* Footer */
+footer { border-top: 1px solid var(--line); margin-top: 24px; padding-block: 28px calc(env(safe-area-inset-bottom, 0px) + 32px); }
+footer .wrap { display: flex; gap: 24px 40px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+footer .fcta { display: grid; gap: 8px; justify-items: start; max-width: 380px; }
+footer .fcta b { font-size: 17px; letter-spacing: -.01em; }
+footer .fcta span { color: var(--muted); font-size: 14px; }
+footer .src { max-width: 460px; }
+
+/* Floating map button (phones and tablets) */
+.fab { display: none; position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); border: 0; border-radius: 999px; padding: 13px 22px; background: var(--accent); color: var(--accent-ink); font-weight: 600; white-space: nowrap; font-size: 14px; align-items: center; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+.fab svg.i { width: 17px; height: 17px; }
+
 @media (max-width: 860px) {
-  .grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  aside { position: static; max-height: none; overflow: visible; order: -1; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  /* Flatten the feed and sidebar into one column: header, day and time pills, then borough and interest pills, then the list */
+  .grid > section { display: contents; }
+  .ehead { order: 1; }
+  #days { order: 2; }
+  #tods { order: 3; }
+  #boros { order: 4; }
+  aside { order: 5; position: static; max-height: none; overflow: visible; gap: 0; }
+  .feednote { order: 6; }
+  #list { order: 7; }
+  aside .side { background: none; border: 0; box-shadow: none; padding: 0; gap: 0; }
+  aside .side h4, .mapwrap, aside .promo.side-promo { display: none; }
+  aside .side .pills { flex-wrap: nowrap; overflow-x: auto; padding-block: 8px 0; mask-image: linear-gradient(90deg, #000 92%, transparent); }
+  .promo.feed { display: grid; }
+  .fab { display: inline-flex; }
+  main { padding-bottom: 72px; }
   .mosaic { inset: 0 -20% 0 20%; opacity: .5; }
   .hero::after { background: linear-gradient(90deg, var(--bg) 10%, color-mix(in srgb, var(--bg) 55%, transparent) 70%), linear-gradient(0deg, var(--bg), transparent 40%); }
 }
@@ -196,8 +252,24 @@ aside::-webkit-scrollbar { display: none; }
   .card { gap: 12px; padding: 12px; }
   .card h3 { font-size: 16px; }
   .gen b { font-size: 19px; }
-  .top nav .hide-sm { display: none; }
-  .hero-in { padding-block: 40px 48px; }
+  .top nav .hide-sm, #refresh .lbl { display: none; }
+  .brand { font-size: 14px; white-space: nowrap; gap: 7px; letter-spacing: -.02em; }
+  .top { gap: 8px; }
+  .top nav { gap: 6px; }
+  .top .signup { padding-inline: 10px; }
+  .hero-in { padding-block: 32px 40px; }
+  .hero h1 span { font-size: 46px; }
+  .ehead h2 { font-size: 22px; }
+  .ehead .tools { width: 100%; justify-content: space-between; }
+  .drawer h2 { font-size: 24px; }
+  .dhero { height: 56vw; }
+}
+/* Bigger tap targets on touch screens */
+@media (pointer: coarse) {
+  .pill { padding: 9px 14px; }
+  .pills.small .pill { padding: 8px 13px; }
+  .seg button { padding: 9px 14px; }
+  .iconbtn { padding: 9px 12px; }
 }
 
 /* Drawer */
@@ -206,7 +278,7 @@ aside::-webkit-scrollbar { display: none; }
 .drawer { position: fixed; z-index: 31; top: 0; right: 0; bottom: 0; width: min(500px, 100%); background: var(--card); border-left: 1px solid var(--line); overflow-y: auto; transform: translateX(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 28px); display: flex; flex-direction: column; gap: 18px; }
 .drawer > * { flex: none; }
 .drawer.show { transform: none; }
-.dbar { display: flex; justify-content: space-between; align-items: center; }
+.dbar { display: flex; justify-content: space-between; align-items: center; position: sticky; top: calc(-12px - env(safe-area-inset-top, 0px)); z-index: 2; background: var(--card); margin-block: calc(-12px - env(safe-area-inset-top, 0px)) -8px; padding-block: calc(12px + env(safe-area-inset-top, 0px)) 8px; }
 .dhero { width: 100%; height: min(340px, 80vw); border-radius: 14px; overflow: hidden; background: var(--card-2); }
 .dhero { position: relative; }
 .dhero .gen { padding: 20px; }
@@ -232,6 +304,85 @@ aside::-webkit-scrollbar { display: none; }
 .tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.35; padding: 7px 10px; border-radius: 8px; max-width: 240px; }
 .tip b { display: block; font-weight: 600; }
 
+/* Date picker: a small calendar covering the two weeks in the data */
+.pill.calbtn { color: var(--ink); gap: 6px; align-items: center; }
+.pill.calbtn svg.i { width: 14px; height: 14px; }
+.cal { position: fixed; z-index: 28; width: min(344px, calc(100vw - 32px)); background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.2); padding: 14px; display: grid; gap: 10px; }
+.cal-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cal-h b { font-size: 15px; font-weight: 600; }
+.cal-h small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cal-g .dw { font-size: 11px; font-weight: 500; color: var(--faint); text-align: center; padding-bottom: 2px; }
+.cal-g button { min-height: 50px; border: 0; border-radius: 10px; background: var(--card-2); display: grid; align-content: center; justify-items: center; gap: 1px; padding: 4px 0; font-weight: 600; font-size: 15px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.cal-g button small { font: 400 10px var(--mono); color: var(--muted); }
+.cal-g button .mo { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
+.cal-g button:disabled { background: none; color: var(--faint); cursor: default; }
+.cal-g button:disabled small { visibility: hidden; }
+.cal-g button.today { box-shadow: inset 0 0 0 2px var(--accent); }
+.cal-g button:not(:disabled):hover { background: var(--accent-soft); }
+.cal-g button[aria-pressed="true"], .cal-g button[aria-pressed="true"]:hover { background: var(--ink); color: var(--bg); }
+.cal-g button[aria-pressed="true"] small, .cal-g button[aria-pressed="true"] .mo { color: var(--bg); }
+.cal-f { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+
+/* Full-screen map explorer */
+.mapx { position: fixed; inset: 0; z-index: 25; background: var(--bg); display: flex; flex-direction: column; }
+.mx-bar { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px 14px; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); background: var(--card); }
+.mx-back { padding: 10px 16px 10px 12px; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.18); }
+.mx-back svg.i { width: 18px; height: 18px; stroke-width: 2.2; }
+.mx-bar .pills { padding: 0; min-width: 0; }
+.mx-bar .seg { justify-self: start; }
+.mx-body { position: relative; flex: 1; min-height: 0; display: flex; }
+.mx-panel { order: -1; width: 360px; flex: none; border-right: 1px solid var(--line); background: var(--card); display: flex; flex-direction: column; min-height: 0; }
+.mx-head { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line); background: none; text-align: left; width: 100%; font-size: 14px; }
+.mx-head b { font-weight: 600; }
+.mx-head span { color: var(--muted); }
+.mx-head .grab { display: none; }
+.mx-list { overflow-y: auto; flex: 1; padding: 6px; overscroll-behavior: contain; }
+.mrow { display: flex; gap: 10px; width: 100%; text-align: left; border: 0; background: none; border-radius: 10px; padding: 8px; align-items: center; }
+.mrow:hover, .mrow:focus-visible { background: var(--card-2); }
+.mrow .th { display: block; width: 52px; height: 52px; border-radius: 8px; overflow: hidden; flex: none; position: relative; background: var(--card-2); }
+.mrow .th .gen { padding: 5px; }
+.mrow .th .gen b { font-size: 11px; }
+.mrow .th .gen small { display: none; }
+.mrow .th img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mrow div { display: grid; gap: 1px; min-width: 0; }
+.mrow small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.mrow strong { font-size: 14px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mrow span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mx-more { padding: 10px 10px 16px; font-size: 13px; color: var(--muted); text-align: center; }
+#lmap { flex: 1; min-width: 0; background: var(--card-2); }
+#lmap .leaflet-container, #lmap { font: 12px var(--font); }
+#lmap .leaflet-tile-pane { filter: saturate(.55) contrast(.95); }
+#lmap.dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) saturate(.4) brightness(.9) contrast(.9); }
+.mx-msg { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); text-align: center; padding: 20px; pointer-events: none; }
+/* Map markers: one per park location, merged into clusters when zoomed out */
+.mk { background: none; border: 0; }
+.mk span { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font: 700 12px var(--font); font-variant-numeric: tabular-nums; border: 2px solid var(--card); box-shadow: 0 1px 4px rgba(0,0,0,.3); transition: transform .12s; }
+.mk.cl span { background: var(--ink); color: var(--bg); }
+.mk.sel span { background: var(--warn); color: #fff; transform: scale(1.2); }
+.mk:hover span { transform: scale(1.12); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+.leaflet-control-attribution { font-size: 10px; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .leaflet-bar a { background: var(--card); color: var(--ink); border-color: var(--line); } }
+
+@media (max-width: 860px) {
+  .mx-bar { grid-template-columns: auto auto; justify-content: space-between; }
+  .mx-bar .pills { grid-column: 1 / -1; grid-row: 2; }
+  .mx-body { display: block; }
+  #lmap { position: absolute; inset: 0; }
+  /* Bottom sheet: peeks at the bottom, tap the handle to open */
+  .mx-panel { position: absolute; z-index: 1001; left: 0; right: 0; bottom: 0; width: auto; height: 62%; border: 0; border-radius: 16px 16px 0 0; box-shadow: 0 -6px 24px rgba(0,0,0,.18); transform: translateY(calc(100% - 64px - env(safe-area-inset-bottom, 0px))); transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+  .mx-panel.open { transform: none; }
+  .mx-head { flex-wrap: wrap; padding: 6px 16px 12px; min-height: 64px; }
+  .mx-head .grab { display: block; width: 100%; height: 14px; position: relative; }
+  .mx-head .grab::before { content: ""; position: absolute; left: 50%; top: 4px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--faint); }
+  .mx-list { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); }
+  .mapx .leaflet-bottom { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 520px) {
+  .mx-bar .seg small { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mosaic .col { animation: none; }
   *, .drawer, .scrim { transition: none !important; }
@@ -242,8 +393,8 @@ aside::-webkit-scrollbar { display: none; }
   <div class="mosaic" id="mosaic" aria-hidden="true"></div>
   <div class="wrap">
     <div class="top">
-      <a class="brand" href="#events"><span class="mark"><i></i></span>Out in the Parks</a>
-      <nav><span class="clock hide-sm" id="clock"></span><span class="upd" id="upd"></span><button class="iconbtn" id="refresh" type="button" title="Load the latest events from NYC Open Data"><svg class="i" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>Refresh</button></nav>
+      <a class="brand" href="#events"><span class="mark"><i></i></span>What's on in NYC Parks</a>
+      <nav><span class="clock hide-sm" id="clock"></span><span class="upd hide-sm" id="upd"></span><button class="iconbtn" id="refresh" type="button" title="Load the latest events from NYC Open Data" aria-label="Refresh"><svg class="i" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg><span class="lbl">Refresh</span></button><button class="btn acc sm signup" type="button" data-signup="nav"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Get emails</button></nav>
     </div>
     <div class="hero-in">
       <div class="pin"><svg class="i" viewBox="0 0 24 24"><path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-3-6-6-10z"/><path d="M12 21v-8"/><path d="M12 15l-3-2.5M12 13l3-2.5"/></svg></div>
@@ -264,31 +415,72 @@ aside::-webkit-scrollbar { display: none; }
       <section aria-labelledby="count">
         <div class="ehead">
           <h2 id="count">Events</h2>
-          <button class="iconbtn" id="clear" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear filters</button>
+          <div class="tools">
+            <div class="seg" role="tablist" aria-label="Upcoming or past events" data-feed></div>
+            <button class="iconbtn" id="clear" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear filters</button>
+          </div>
         </div>
         <div class="pills" id="days" aria-label="Pick a day"></div>
         <div class="pills small" id="tods" aria-label="Time of day"></div>
+        <div class="pills small" id="boros" aria-label="Borough"></div>
+        <p class="feednote" id="feednote" hidden><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Events move here on their own once they end. Most recent first.</p>
         <div class="tl" id="list"><div class="empty"><b>Loading events…</b><span>Pulling the next two weeks of NYC Parks events.</span></div></div>
       </section>
 
       <aside>
         <div class="side">
           <h4>New York City <small>Tap a borough</small></h4>
-          <svg id="map" role="img" aria-label="Map of the five boroughs with a dot for each matching event"></svg>
-          <div class="pills" id="boros"></div>
+          <div class="mapwrap">
+            <svg id="map" role="img" aria-label="Map of the five boroughs with a dot for each matching event"></svg>
+            <button class="btn acc expand" type="button" data-openmap><svg class="i" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Explore events via map</button>
+          </div>
         </div>
         <div class="side">
           <h4>Interests</h4>
           <div class="pills" id="cats"></div>
         </div>
-        <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go.</p>
+        <div class="promo side-promo">
+          <b>Park events in your inbox</b>
+          <p>A weekly roundup of free concerts, classes, and hikes in the parks near you.</p>
+          <button class="btn acc signup" type="button" data-signup="sidebar"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
+        </div>
       </aside>
     </div>
   </div>
 </main>
 
+<footer class="gut">
+  <div class="wrap">
+    <div class="fcta">
+      <b>Never miss a park event</b>
+      <span>Get a weekly email with what's coming up in NYC parks.</span>
+      <button class="btn acc signup" type="button" data-signup="footer"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
+    </div>
+    <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go.</p>
+  </div>
+</footer>
+
+<button class="fab" type="button" data-openmap><svg class="i" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Explore events via map</button>
+
+<div class="mapx" id="mapx" role="dialog" aria-modal="true" aria-label="Event map" hidden>
+  <div class="mx-bar">
+    <button class="btn pri mx-back" id="mxclose" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to events</button>
+    <div class="seg" role="tablist" aria-label="Upcoming or past events" data-feed></div>
+    <div class="pills" id="mdays" aria-label="Pick a day"></div>
+  </div>
+  <div class="mx-body">
+    <div id="lmap"></div>
+    <div class="mx-msg" id="mxmsg" hidden></div>
+    <div class="mx-panel" id="mxpanel">
+      <div class="mx-head" id="mxhead"></div>
+      <div class="mx-list" id="mxlist"></div>
+    </div>
+  </div>
+</div>
+
 <div class="scrim" id="scrim" hidden></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dtitle" hidden></div>
+<div class="cal" id="cal" role="dialog" aria-label="Pick a date" hidden></div>
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -301,12 +493,17 @@ aside::-webkit-scrollbar { display: none; }
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const https = (u) => u ? u.replace(/^http:\/\//, 'https://') : '';
-  const clean = (t) => (t || '').trim().replace(/([a-z0-9][.!?)])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ');
+  const ent = document.createElement('textarea');
+  const decode = (t) => (/&[#a-z0-9]+;/i.test(t) ? ((ent.innerHTML = t), ent.value) : t);
+  const clean = (t) => decode(t || '').trim().replace(/([a-z0-9][.!?)])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ');
   const I = {
     pin: '<svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
     x: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     ext: '<svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
     user: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+    cal: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+    mail: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>',
+    map: '<svg class="i" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>',
     phone: '<svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
   };
 
@@ -359,7 +556,7 @@ aside::-webkit-scrollbar { display: none; }
   function toast(msg) { const t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4500); }
 
   // ---- Data -----------------------------------------------------------------
-  let EV = [], byId = {}, DAYS = [], CATS = [], catCount = {}, IMGS = {}, META = {};
+  let EV = [], byId = {}, DAYS = [], CATS = [], catCount = {}, IMGS = {}, META = {}, pastN = 0;
 
   // Turn raw NYC Open Data rows into the shape the page uses
   function normalize(rows) {
@@ -418,7 +615,8 @@ aside::-webkit-scrollbar { display: none; }
       const f = dateOf(DAYS[0]), l = dateOf(DAYS[DAYS.length - 1]);
       $('range').textContent = `${MON[f.getMonth()]} ${f.getDate()} – ${MON[l.getMonth()]} ${l.getDate()} · next 14 days`;
     }
-    $('lede').innerHTML = `<b>${EV.length.toLocaleString()} events</b> in ${parks.size} parks: sunrise workouts, ranger-led hikes, craft tables, concerts, and volunteer days, all across the five boroughs.`;
+    const upN = EV.filter((e) => !isPast(e)).length;
+    $('lede').innerHTML = `<b>${upN.toLocaleString()} upcoming events</b> in ${parks.size} parks: sunrise workouts, ranger-led hikes, craft tables, concerts, and volunteer days, all across the five boroughs.`;
     $('upd').textContent = 'Updated ' + stamp(META.rowsUpdatedAt);
     $('fetched').textContent = stamp(META.rowsUpdatedAt);
     renderMosaic();
@@ -452,11 +650,12 @@ aside::-webkit-scrollbar { display: none; }
   refreshBtn.addEventListener('click', () => refresh(false));
 
   // ---- Filters ----------------------------------------------------------------
-  const S = { day: 'all', boro: null, tod: null, cats: new Set(), q: '' };
+  const S = { feed: 'up', day: 'all', boro: null, tod: null, cats: new Set(), q: '' };
   try { const saved = JSON.parse(localStorage.getItem('parks-filters') || 'null'); if (saved) { S.boro = saved.boro || null; S.tod = saved.tod || null; S.cats = new Set(saved.cats || []); } } catch (_) {}
   const save = () => { try { localStorage.setItem('parks-filters', JSON.stringify({ boro: S.boro, tod: S.tod, cats: [...S.cats] })); } catch (_) {} };
 
-  function match(e, skipDay) {
+  function match(e, skipDay, skipFeed) {
+    if (!skipFeed && (S.feed === 'past') !== !!isPast(e)) return false;
     if (!skipDay && S.day !== 'all' && e.day !== S.day) return false;
     if (S.boro && e.b !== S.boro) return false;
     if (S.tod && !TODS.find((t) => t.k === S.tod).test(e.min)) return false;
@@ -518,17 +717,98 @@ aside::-webkit-scrollbar { display: none; }
   $('hsearch').addEventListener('submit', (e) => { e.preventDefault(); S.q = $('q').value.trim().toLowerCase(); update(); $('events').scrollIntoView({ behavior: 'smooth' }); });
   $('clear').addEventListener('click', () => { Object.assign(S, { day: 'all', boro: null, tod: null, q: '' }); S.cats.clear(); $('q').value = ''; save(); update(); });
 
+  // Upcoming / Past switch, shown above the feed and in the map
+  function renderFeed() {
+    const n = { up: 0, past: 0 };
+    EV.forEach((e) => { if (match(e, true, true)) n[isPast(e) ? 'past' : 'up']++; });
+    const html = [['up', 'Upcoming'], ['past', 'Past']].map(([k, label]) =>
+      `<button role="tab" type="button" data-f="${k}" aria-selected="${S.feed === k}">${label} <small>${n[k].toLocaleString()}</small></button>`).join('');
+    document.querySelectorAll('[data-feed]').forEach((el) => (el.innerHTML = html));
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-feed] button');
+    if (!b || b.dataset.f === S.feed) return;
+    S.feed = b.dataset.f; S.day = 'all'; update();
+  });
+
+  // Days that have at least one event in the current feed; the Past feed runs newest first
+  const feedDays = () => {
+    const has = new Set(EV.filter((e) => (S.feed === 'past') === !!isPast(e)).map((e) => e.day));
+    const ks = DAYS.filter((k) => has.has(k));
+    return S.feed === 'past' ? ks.reverse() : ks;
+  };
+  let dayCounts = {};
   function renderDays() {
     const counts = {}; let total = 0;
     EV.forEach((e) => { if (match(e, true)) { counts[e.day] = (counts[e.day] || 0) + 1; total++; } });
-    $('days').innerHTML =
+    dayCounts = counts;
+    const days = feedDays();
+    if (S.day !== 'all' && !days.includes(S.day)) S.day = 'all';
+    const html =
+      `<button class="pill calbtn" type="button" data-cal aria-haspopup="dialog" aria-label="Pick a date from a calendar">${I.cal}Pick a date</button>` +
       `<button class="pill" data-d="all" aria-pressed="${S.day === 'all'}"><b>All days</b> <small>${total}</small></button>` +
-      DAYS.map((k) => {
+      days.map((k) => {
         const d = dateOf(k), n = counts[k] || 0, rel = relDay(k);
         return `<button class="pill" data-d="${k}" aria-pressed="${S.day === k}" aria-label="${niceDate(k, true)}, ${n} events"${n ? '' : ' disabled'}><b>${rel || DOW[d.getDay()]}</b> ${MON[d.getMonth()]} ${d.getDate()} <small>${n}</small></button>`;
       }).join('');
+    $('days').innerHTML = html; $('mdays').innerHTML = html;
   }
-  $('days').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled) { S.day = b.dataset.d; update(); } });
+  const pickDay = (e) => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    if (b.hasAttribute('data-cal')) return cal.hidden ? openCal(b) : closeCal();
+    S.day = b.dataset.d; update();
+  };
+  $('days').addEventListener('click', pickDay);
+  $('mdays').addEventListener('click', pickDay);
+
+  // Calendar popover: every day in the data's two-week window, laid out by week, with event counts.
+  // Days with nothing matching the current feed and filters are greyed out.
+  const cal = $('cal');
+  let calFrom = null;
+  function renderCal() {
+    if (!DAYS.length) return;
+    const first = dateOf(DAYS[0]), last = dateOf(DAYS[DAYS.length - 1]);
+    const start = new Date(first); start.setDate(start.getDate() - start.getDay());
+    const end = new Date(last); end.setDate(end.getDate() + (6 - end.getDay()));
+    let cells = '';
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const k = keyOf(d);
+      if (d < first || d > last) { cells += '<span></span>'; continue; }
+      const n = dayCounts[k] || 0, mo = k === DAYS[0] || d.getDate() === 1;
+      cells += `<button type="button" data-d="${k}" aria-pressed="${S.day === k}" class="${k === TODAY ? 'today' : ''}" aria-label="${niceDate(k, true)}, ${n} event${n === 1 ? '' : 's'}"${n ? '' : ' disabled'}>` +
+        `${mo ? `<span class="mo">${MON[d.getMonth()]}</span>` : ''}${d.getDate()}<small>${n}</small></button>`;
+    }
+    cal.innerHTML = `<div class="cal-h"><b>Pick a date</b><small>${MON[first.getMonth()]} ${first.getDate()} – ${MON[last.getMonth()]} ${last.getDate()}</small></div>
+      <div class="cal-g">${DOW.map((w) => `<span class="dw">${w[0]}</span>`).join('')}${cells}</div>
+      <div class="cal-f"><span>Numbers show matching events</span><button class="btn sec sm" type="button" data-d="all">All days</button></div>`;
+  }
+  function placeCal() {
+    const r = calFrom.getBoundingClientRect(), w = cal.offsetWidth, h = cal.offsetHeight;
+    cal.style.left = Math.max(16, Math.min(r.left, innerWidth - w - 16)) + 'px';
+    cal.style.top = (r.bottom + 8 + h > innerHeight - 8 && r.top - 8 - h > 8 ? r.top - 8 - h : r.bottom + 8) + 'px';
+  }
+  function openCal(btn) {
+    calFrom = btn; renderCal(); cal.hidden = false; placeCal();
+    btn.setAttribute('aria-expanded', 'true');
+    const f = cal.querySelector('.cal-g button[aria-pressed="true"]') || cal.querySelector('.cal-g button:not(:disabled)');
+    if (f) f.focus({ preventScroll: true });
+  }
+  function closeCal(refocus) {
+    if (cal.hidden) return;
+    cal.hidden = true;
+    if (calFrom) { calFrom.setAttribute('aria-expanded', 'false'); if (refocus && document.contains(calFrom)) calFrom.focus({ preventScroll: true }); }
+  }
+  cal.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-d]'); if (!b || b.disabled) return;
+    const row = calFrom && calFrom.closest('.pills');
+    S.day = b.dataset.d; closeCal(); update();
+    // Bring the chosen day's pill into view in the row the calendar was opened from
+    const pill = row && row.querySelector(`[data-d="${S.day}"]`);
+    if (pill) row.scrollTo({ left: pill.offsetLeft - row.offsetLeft - 16, behavior: 'smooth' });
+  });
+  document.addEventListener('pointerdown', (e) => { if (!cal.hidden && !cal.contains(e.target) && !e.target.closest('[data-cal]')) closeCal(); });
+  addEventListener('resize', () => closeCal());
+  addEventListener('scroll', (e) => { if (!cal.contains(e.target)) closeCal(); }, true);
 
   const endMin = (e) => (e.e && e.e.slice(0, 10) === e.day ? toMin(e.e) : null);
   const dur = (e) => {
@@ -561,21 +841,28 @@ aside::-webkit-scrollbar { display: none; }
   let shown = [], limit = PAGE;
   function renderList() {
     shown = EV.filter((e) => match(e));
-    const n = shown.length;
-    $('count').innerHTML = `Events <small>${n.toLocaleString()}${S.day !== 'all' ? ' on ' + niceDate(S.day) : ''}</small>`;
+    if (S.feed === 'past') shown.reverse();
+    const n = shown.length, past = S.feed === 'past';
+    $('count').innerHTML = `${past ? 'Past events' : 'Events'} <small>${n.toLocaleString()}${S.day !== 'all' ? ' on ' + niceDate(S.day) : ''}</small>`;
     $('clear').hidden = !(S.day !== 'all' || S.boro || S.tod || S.cats.size || S.q);
+    $('feednote').hidden = !past;
     if (!n) {
-      $('list').innerHTML = `<div class="empty"><b>No events match</b><span>Try another day or loosen a filter.</span><button class="btn sec" id="clear2">Clear filters</button></div>`;
-      $('clear2').onclick = () => $('clear').click();
+      const filtered = S.day !== 'all' || S.boro || S.tod || S.cats.size || S.q;
+      $('list').innerHTML = past && !filtered
+        ? `<div class="empty"><b>Nothing has ended yet</b><span>Events show up here once they're over.</span></div>`
+        : `<div class="empty"><b>No events match</b><span>Try another day or loosen a filter.</span><button class="btn sec" id="clear2">Clear filters</button></div>`;
+      if ($('clear2')) $('clear2').onclick = () => $('clear').click();
       return;
     }
     const byDay = {};
     shown.slice(0, limit).forEach((e) => (byDay[e.day] = byDay[e.day] || []).push(e));
     const totals = {}; shown.forEach((e) => (totals[e.day] = (totals[e.day] || 0) + 1));
-    $('list').innerHTML = Object.entries(byDay).map(([k, list]) => {
+    // On phones an email signup card sits after the first day
+    const promo = `<div class="promo feed"><b>Park events in your inbox</b><p>A weekly roundup of free concerts, classes, and hikes in the parks near you.</p><button class="btn acc signup" type="button" data-signup="feed">${I.mail}Sign up for emails</button></div>`;
+    $('list').innerHTML = Object.entries(byDay).map(([k, list], i) => {
       const d = dateOf(k), rel = relDay(k);
       return `<div class="day"><div class="dh${k === TODAY ? ' is-today' : ''}"><b>${rel || MON[d.getMonth()] + ' ' + d.getDate()}</b><span>${DOWL[d.getDay()]}</span><em>${totals[k]}</em></div>
-        <div class="cards">${list.map(card).join('')}</div></div>`;
+        <div class="cards">${list.map(card).join('')}</div>${i === 0 && !past ? promo : ''}</div>`;
     }).join('') + (n > limit ? `<div class="more-wrap"><button class="btn sec" id="more">Show more events (${n - limit} left)</button></div>` : '');
     const m = $('more'); if (m) m.onclick = () => { limit += PAGE * 2; renderList(); };
   }
@@ -583,7 +870,18 @@ aside::-webkit-scrollbar { display: none; }
     const g = $('dots'); if (!g || !px) return;
     g.innerHTML = shown.filter((e) => e.x != null).map((e) => `<circle data-id="${esc(e.id)}" cx="${px(e.x)}" cy="${py(e.y)}" r="3.6"></circle>`).join('');
   }
-  function update() { limit = PAGE; renderControls(); renderDays(); renderList(); renderDots(); }
+  // keep = true re-renders in place (e.g. when the clock moves events into Past) without collapsing "Show more"
+  function update(keep) {
+    if (!keep) limit = PAGE;
+    pastN = EV.reduce((a, e) => a + (isPast(e) ? 1 : 0), 0);
+    renderControls(); renderFeed(); renderDays(); renderList(); renderDots(); renderMapx();
+  }
+  // Every 30 seconds, move events that have just ended into the Past feed
+  setInterval(() => {
+    if (!EV.length) return;
+    setNow();
+    if (EV.reduce((a, e) => a + (isPast(e) ? 1 : 0), 0) !== pastN) update(true);
+  }, 30000);
 
   // ---- Interactions ------------------------------------------------------------
   let hlId = null;
@@ -617,26 +915,34 @@ aside::-webkit-scrollbar { display: none; }
       <div class="dact">
         ${e.r ? `<a class="btn acc" href="${esc(e.r)}" target="_blank" rel="noopener">Register ${I.ext}</a>` : ''}
         ${e.u ? `<a class="btn ${e.r ? 'sec' : 'acc'}" href="${esc(e.u)}" target="_blank" rel="noopener">Event page ${I.ext}</a>` : ''}
+        ${e.y != null ? `<button class="btn sec" type="button" id="dmap">${I.map}Show on map</button>` : ''}
       </div>
       ${e.rd ? `<div class="reg-note">${esc(e.rd)}</div>` : ''}
       ${e.d ? `<div class="dsec"><h5>About this event</h5><p>${esc(e.d)}</p></div>` : ''}
-      <div class="dsec"><h5>Categories</h5><div class="badges">${e.c.map((c) => `<span class="bdg">${esc(c)}</span>`).join('')}</div></div>`;
+      <div class="dsec"><h5>Categories</h5><div class="badges">${e.c.map((c) => `<span class="bdg">${esc(c)}</span>`).join('')}</div></div>
+      <div class="dpromo"><span>Get emails about events like this.</span><button class="btn acc sm signup" type="button" data-signup="drawer">${I.mail}Sign up</button></div>`;
     lastFocus = document.activeElement;
     scrim.hidden = false; drawer.hidden = false; document.body.classList.add('lock');
     requestAnimationFrame(() => { scrim.classList.add('show'); drawer.classList.add('show'); });
     drawer.scrollTop = 0;
     $('dclose').onclick = closeDrawer;
+    if ($('dmap')) $('dmap').onclick = () => { closeDrawer(); openMap(e); };
     $('dclose').focus({ preventScroll: true });
     highlight(id);
   }
   function closeDrawer() {
-    scrim.classList.remove('show'); drawer.classList.remove('show'); document.body.classList.remove('lock');
+    scrim.classList.remove('show'); drawer.classList.remove('show');
+    if (mapx.hidden) document.body.classList.remove('lock');
     const done = () => { scrim.hidden = true; drawer.hidden = true; };
     matchMedia('(prefers-reduced-motion: reduce)').matches ? done() : setTimeout(done, 260);
     if (lastFocus) lastFocus.focus({ preventScroll: true });
   }
   scrim.addEventListener('click', closeDrawer);
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!cal.hidden) return closeCal(true);
+    if (!drawer.hidden) closeDrawer(); else if (!mapx.hidden) closeMap();
+  });
 
   const tip = $('tip');
   map.addEventListener('mousemove', (ev) => {
@@ -655,8 +961,172 @@ aside::-webkit-scrollbar { display: none; }
     const p = ev.target.closest('path'); if (p) setBoro(S.boro === p.dataset.b ? null : p.dataset.b);
   });
 
+  // ---- Map explorer: a full-screen, zoomable street map of the current feed ------
+  // Leaflet loads on first open. Borough outlines are drawn until tiles load, so the map still reads if tiles are blocked.
+  const mapx = $('mapx');
+  const LEAFLET = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
+  const NYC_BOUNDS = [[40.4774, -74.2591], [40.9176, -73.7004]];
+  let BORO_DATA = null, leafletP = null, LM = null, tiles = null, markerLayer = null, boroLayer = null;
+  let locs = [], selLoc = null, mapReturn = null;
+
+  function loadLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    return leafletP || (leafletP = new Promise((res, rej) => {
+      document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'stylesheet', href: LEAFLET + 'leaflet.min.css', crossOrigin: 'anonymous',
+        integrity: 'sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==' }));
+      const js = Object.assign(document.createElement('script'), { src: LEAFLET + 'leaflet.min.js', crossOrigin: 'anonymous',
+        integrity: 'sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==' });
+      js.onload = () => res(window.L);
+      js.onerror = () => { leafletP = null; js.remove(); rej(new Error('Leaflet failed to load')); };
+      document.head.appendChild(js);
+    }));
+  }
+  const isDark = () => { const t = document.documentElement.dataset.theme; return t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches); };
+  const locKey = (e) => e.y.toFixed(4) + ',' + e.x.toFixed(4);
+
+  async function initMap() {
+    const L = await loadLeaflet();
+    if (LM) return;
+    LM = L.map('lmap', { zoomControl: false, minZoom: 9, maxZoom: 18, zoomSnap: 0.25, maxBounds: [[40.2, -74.7], [41.2, -73.3]], maxBoundsViscosity: 0.8 });
+    L.control.zoom({ position: 'topright' }).addTo(LM);
+    LM.fitBounds(S.boro ? boroBounds(S.boro) || NYC_BOUNDS : NYC_BOUNDS);
+    if (BORO_DATA) {
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0c8f58';
+      boroLayer = L.layerGroup(BORO_DATA.map((b) => L.polygon(b.r.map((r) => r.map(([x, y]) => [y, x])), { color: accent, weight: 1.2, opacity: 0.55, fillOpacity: 0.04, interactive: false }))).addTo(LM);
+    }
+    markerLayer = L.layerGroup().addTo(LM);
+    LM.on('zoomend', drawMarkers);
+    LM.on('moveend', renderPanel);
+  }
+  function boroBounds(name) {
+    const b = BORO_DATA && BORO_DATA.find((x) => x.n === name); if (!b) return null;
+    const pts = b.r.flat();
+    return [[Math.min(...pts.map((p) => p[1])), Math.min(...pts.map((p) => p[0]))], [Math.max(...pts.map((p) => p[1])), Math.max(...pts.map((p) => p[0]))]];
+  }
+  // OpenStreetMap street tiles; in dark mode a CSS filter darkens them to match the page
+  function setTiles() {
+    $('lmap').classList.toggle('dark', isDark());
+    if (tiles) return;
+    tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+    }).addTo(LM);
+    // Borough outlines are only a fallback; once real tiles arrive they'd just clutter the streets
+    tiles.once('tileload', () => boroLayer && LM.removeLayer(boroLayer));
+  }
+
+  // One entry per park location in the current feed
+  function buildLocs() {
+    const m = new Map();
+    shown.forEach((e) => {
+      if (e.y == null) return;
+      const k = locKey(e);
+      let l = m.get(k);
+      if (!l) m.set(k, (l = { k, y: e.y, x: e.x, ev: [], name: e.p || e.l || 'NYC Parks' }));
+      l.ev.push(e);
+    });
+    locs = [...m.values()];
+  }
+  // Locations close together on screen merge into one numbered cluster; zoom in and they split apart
+  function drawMarkers() {
+    if (!LM) return;
+    markerLayer.clearLayers();
+    const z = LM.getZoom(), cell = z >= 16 ? 0 : 46, groups = new Map();
+    locs.forEach((l) => {
+      const p = LM.project([l.y, l.x], z);
+      const k = cell ? Math.floor(p.x / cell) + ':' + Math.floor(p.y / cell) : l.k;
+      let g = groups.get(k);
+      if (!g) groups.set(k, (g = { locs: [], n: 0, y: 0, x: 0 }));
+      g.locs.push(l); g.n += l.ev.length; g.y += l.y * l.ev.length; g.x += l.x * l.ev.length;
+    });
+    groups.forEach((g) => {
+      const one = g.locs.length === 1, n = g.n;
+      const size = n === 1 ? 24 : n < 10 ? 28 : n < 50 ? 34 : 40;
+      const sel = selLoc && g.locs.some((l) => l.k === selLoc);
+      const icon = L.divIcon({ className: 'mk' + (one ? '' : ' cl') + (sel ? ' sel' : ''), html: `<span>${n}</span>`, iconSize: [size, size] });
+      const title = one ? `${g.locs[0].name}: ${n} event${n > 1 ? 's' : ''}` : `${n} events in ${g.locs.length} places. Zoom in`;
+      const m = L.marker(one ? [g.locs[0].y, g.locs[0].x] : [g.y / n, g.x / n], { icon, title, alt: title, riseOnHover: true, zIndexOffset: sel ? 1000 : 0 });
+      m.on('click', () => {
+        if (one) return selectLoc(g.locs[0].k, true);
+        LM.flyToBounds(L.latLngBounds(g.locs.map((l) => [l.y, l.x])), { padding: [60, 60], maxZoom: 17, duration: 0.5 });
+      });
+      markerLayer.addLayer(m);
+    });
+  }
+  const sheetMode = () => matchMedia('(max-width: 860px)').matches;
+  function selectLoc(k, openSheet) {
+    selLoc = k; drawMarkers(); renderPanel();
+    if (!openSheet || !sheetMode()) return;
+    $('mxpanel').classList.add('open');
+    // Slide the map so the chosen spot sits in the strip above the sheet
+    const l = locs.find((x) => x.k === k), h = LM.getSize().y;
+    if (l) LM.panBy([0, LM.latLngToContainerPoint([l.y, l.x]).y - h * 0.19]);
+  }
+
+  const mrow = (e) => `<button class="mrow" type="button" data-id="${esc(e.id)}"><span class="th">${cover(e)}</span><div><small>${niceDate(e.day)} · ${fmtTime(e.min)}${isLive(e) ? ' · Happening now' : ''}</small><strong>${esc(e.t)}</strong><span>${esc(e.p || e.l)}</span></div></button>`;
+  // Side panel (bottom sheet on phones): events at the chosen spot, or everything in view
+  function renderPanel() {
+    if (!LM || mapx.hidden) return;
+    const sel = selLoc && locs.find((l) => l.k === selLoc), past = S.feed === 'past';
+    let list;
+    if (sel) {
+      list = sel.ev;
+      $('mxhead').innerHTML = `<span class="grab"></span><div><b>${esc(sel.name)}</b><br><span>${list.length} ${past ? 'past ' : ''}event${list.length > 1 ? 's' : ''} here</span></div><button class="iconbtn" type="button" id="mxall">All in view</button>`;
+    } else {
+      const b = LM.getBounds();
+      list = shown.filter((e) => e.y != null && b.contains([e.y, e.x]));
+      $('mxhead').innerHTML = `<span class="grab"></span><div><b>${list.length.toLocaleString()} ${past ? 'past ' : ''}event${list.length === 1 ? '' : 's'} in view</b><br><span>Zoom in, or tap a number to see what's there</span></div>`;
+    }
+    const CAP = 100;
+    $('mxlist').innerHTML = list.slice(0, CAP).map(mrow).join('') +
+      (list.length > CAP ? `<div class="mx-more">${(list.length - CAP).toLocaleString()} more. Zoom in or pick a day to narrow it down.</div>` : '') ||
+      `<div class="mx-more">No events in this area. Zoom out or pick another day.</div>`;
+    $('mxlist').scrollTop = 0;
+  }
+  function renderMapx() {
+    if (!LM || mapx.hidden) return;
+    buildLocs();
+    if (selLoc && !locs.some((l) => l.k === selLoc)) selLoc = null;
+    drawMarkers(); renderPanel();
+  }
+
+  async function openMap(focus) {
+    mapReturn = document.activeElement;
+    // Give the map its own history entry so the browser's Back button (or a phone's back swipe) returns to the feed
+    if (mapx.hidden && !(history.state && history.state.map)) { try { history.pushState({ map: 1 }, ''); } catch (_) {} }
+    mapx.hidden = false; document.body.classList.add('lock');
+    $('mxclose').focus({ preventScroll: true });
+    $('mxmsg').hidden = true;
+    try { await initMap(); } catch (_) {
+      $('mxmsg').textContent = "The map couldn't load. Check your connection and try again.";
+      $('mxmsg').hidden = false; return;
+    }
+    setTiles();
+    LM.invalidateSize();
+    renderMapx();
+    if (focus && focus.y != null) {
+      LM.setView([focus.y, focus.x], 16);
+      if (locs.some((l) => l.k === locKey(focus))) selectLoc(locKey(focus), false);
+    }
+  }
+  function closeMap(fromHistory) {
+    if (mapx.hidden) return;
+    if (fromHistory !== true && history.state && history.state.map) { history.back(); return; }  // popstate finishes the close
+    mapx.hidden = true; $('mxpanel').classList.remove('open');
+    if (drawer.hidden) document.body.classList.remove('lock');
+    if (mapReturn && document.contains(mapReturn)) mapReturn.focus({ preventScroll: true });
+  }
+  $('mxclose').addEventListener('click', () => closeMap());
+  addEventListener('popstate', () => closeMap(true));
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-openmap]')) openMap(); });
+  $('mxlist').addEventListener('click', (e) => { const r = e.target.closest('.mrow'); if (r) openDrawer(r.dataset.id); });
+  $('mxhead').addEventListener('click', (e) => {
+    if (e.target.closest('#mxall')) { selLoc = null; drawMarkers(); renderPanel(); return; }
+    $('mxpanel').classList.toggle('open');
+  });
+
   // ---- Start: load the site's saved snapshot, or go live if it's missing ----------
-  getJSON('data/boros.json').then((b) => { drawMap(b); if (EV.length) update(); }).catch(() => {});
+  getJSON('data/boros.json').then((b) => { BORO_DATA = b; drawMap(b); if (EV.length) update(); }).catch(() => {});
   Promise.all([getJSON('data/events.json'), getJSON('data/meta.json')])
     .then(([rows, meta]) => setData(rows, meta))
     .catch(() => refresh(true));
