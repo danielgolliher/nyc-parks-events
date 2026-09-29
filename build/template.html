@@ -1,0 +1,567 @@
+<title>Out in the Parks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: city-calendar style. Photo-mosaic hero, then a dated timeline of event cards | sticky sidebar (map + filters). Detail opens in a side drawer. */
+:root {
+  --bg: #f4f5f6;
+  --card: #ffffff;
+  --card-2: #eceef0;
+  --ink: #131517;
+  --muted: #6e7174;
+  --faint: #a9acaf;
+  --line: rgba(19, 21, 23, .09);
+  --accent: #0c8f58;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(12, 143, 88, .12);
+  --warn: #c2410c;
+  --warn-soft: rgba(194, 65, 12, .12);
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.05);
+  --scrim: rgba(19, 21, 23, .45);
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131517; --card: #1b1d20; --card-2: #25282b; --ink: #f4f5f6; --muted: #95989b; --faint: #5d6064;
+    --line: rgba(255,255,255,.08); --accent: #3fdc98; --accent-ink: #07170f; --accent-soft: rgba(63,220,152,.14);
+    --warn: #fb923c; --warn-soft: rgba(251,146,60,.14); --shadow: none; --scrim: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131517; --card: #1b1d20; --card-2: #25282b; --ink: #f4f5f6; --muted: #95989b; --faint: #5d6064;
+  --line: rgba(255,255,255,.08); --accent: #3fdc98; --accent-ink: #07170f; --accent-soft: rgba(63,220,152,.14);
+  --warn: #fb923c; --warn-soft: rgba(251,146,60,.14); --shadow: none; --scrim: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 60px; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body.lock { overflow: hidden; }
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gut { padding-inline: 16px; }
+.wrap { max-width: 1080px; margin: 0 auto; }
+svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Top bar */
+.top { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; padding-block: 16px; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -.01em; text-decoration: none; }
+.brand .mark { width: 22px; height: 22px; border-radius: 7px; background: var(--accent); display: grid; place-items: center; }
+.brand .mark i { width: 9px; height: 9px; background: var(--accent-ink); border-radius: 0 60% 0 60%; }
+.top nav { display: flex; gap: 18px; align-items: center; font-size: 13px; color: var(--muted); }
+.top nav a { text-decoration: none; }
+.top nav a:hover { color: var(--ink); }
+.clock { font-variant-numeric: tabular-nums; }
+
+/* Hero */
+.hero { position: relative; overflow: hidden; margin-top: -58px; padding-top: 58px; }
+.mosaic { position: absolute; inset: 0 0 0 30%; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; transform: rotate(-8deg) scale(1.25); transform-origin: 60% 40%; opacity: .95; }
+.mosaic .col { display: grid; gap: 10px; align-content: start; animation: drift 60s linear infinite alternate; }
+.mosaic .col:nth-child(even) { animation-direction: alternate-reverse; margin-top: -80px; }
+.mosaic img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; display: block; }
+@keyframes drift { from { transform: translateY(0); } to { transform: translateY(-160px); } }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, var(--bg) 28%, color-mix(in srgb, var(--bg) 75%, transparent) 48%, color-mix(in srgb, var(--bg) 10%, transparent) 75%),
+              linear-gradient(0deg, var(--bg) 0%, transparent 35%), linear-gradient(180deg, var(--bg) 0%, transparent 22%); }
+.hero-in { position: relative; z-index: 2; padding-block: 72px 76px; display: grid; gap: 14px; max-width: 520px; }
+.hero .pin { width: 52px; height: 52px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); border: 1px solid var(--line); display: grid; place-items: center; color: var(--accent); }
+.hero .pin svg { width: 26px; height: 26px; stroke-width: 1.6; }
+.hero h1 { margin: 6px 0 0; font-weight: 700; letter-spacing: -.035em; line-height: 1; }
+.hero h1 small { display: block; font-size: clamp(22px, 3.4vw, 30px); color: var(--muted); font-weight: 500; letter-spacing: -.02em; margin-bottom: 6px; }
+.hero h1 span { font-size: clamp(48px, 8.5vw, 84px); }
+.hero .now { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 14px; font-weight: 500; }
+.hero p { margin: 4px 0 0; font-size: 16px; line-height: 1.55; font-weight: 500; text-wrap: pretty; max-width: 46ch; }
+.hero p b { color: var(--accent); font-weight: 600; }
+.hsearch { display: flex; gap: 8px; margin-top: 8px; max-width: 420px; }
+.hsearch input { flex: 1; min-width: 0; font: 500 15px var(--font); color: var(--ink); background: color-mix(in srgb, var(--card) 85%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; }
+.hsearch input::placeholder { color: var(--faint); }
+.hsearch input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.btn { border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; white-space: nowrap; }
+.btn.pri { background: var(--ink); color: var(--bg); }
+.btn.acc { background: var(--accent); color: var(--accent-ink); }
+.btn.sec { background: var(--card-2); color: var(--ink); }
+.btn:hover { filter: brightness(1.08); }
+
+/* Events area */
+.events { border-top: 1px solid var(--line); padding-top: 28px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start; }
+.ehead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ehead h2 { margin: 0; font-size: 26px; letter-spacing: -.025em; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
+.ehead h2 small { font-size: 15px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.iconbtn { background: var(--card-2); border: 0; border-radius: 8px; padding: 6px 10px; font-size: 13px; color: var(--muted); font-weight: 500; display: inline-flex; gap: 6px; align-items: center; }
+.iconbtn:hover { color: var(--ink); }
+
+.pills { display: flex; gap: 6px; overflow-x: auto; padding-block: 16px 4px; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 92%, transparent); }
+.pills::-webkit-scrollbar { display: none; }
+.pill { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 500; display: inline-flex; gap: 6px; align-items: baseline; color: var(--muted); }
+.pill b { color: var(--ink); font-weight: 600; }
+.pill small { font: 400 11px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.pill:hover { border-color: var(--faint); }
+.pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.pill[aria-pressed="true"] b, .pill[aria-pressed="true"] small { color: var(--bg); }
+.pill:disabled { opacity: .4; cursor: default; }
+.pills.small .pill { padding: 5px 11px; }
+
+/* Timeline */
+.tl { position: relative; margin-top: 8px; }
+.day { position: relative; padding-left: 22px; }
+.day::before { content: ""; position: absolute; left: 4px; top: 22px; bottom: 0; border-left: 1px dashed var(--faint); opacity: .7; }
+.dh { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 14px 10px; margin-left: -22px; padding-left: 22px; display: flex; gap: 8px; align-items: baseline; font-size: 16px; }
+.dh::before { content: ""; position: absolute; left: 0; top: 21px; width: 9px; height: 9px; border-radius: 50%; background: var(--faint); }
+.dh.is-today::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.dh b { font-weight: 600; }
+.dh span { color: var(--muted); }
+.dh em { font-style: normal; margin-left: auto; font: 400 12px var(--mono); color: var(--faint); }
+.cards { display: grid; gap: 12px; padding-bottom: 16px; }
+
+.card { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 14px 16px; box-shadow: var(--shadow); text-align: left; width: 100%; transition: border-color .15s, transform .15s; }
+.card:hover, .card.hl { border-color: color-mix(in srgb, var(--accent) 55%, transparent); }
+.card:hover { transform: translateY(-1px); }
+.card.past { opacity: .55; }
+.cb { flex: 1; min-width: 0; display: grid; gap: 5px; align-content: start; }
+.ct { font-size: 14px; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; display: flex; gap: 6px; flex-wrap: wrap; }
+.card h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; text-wrap: pretty; overflow-wrap: anywhere; }
+.meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); min-width: 0; }
+.meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.av { width: 18px; height: 18px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 700 9px var(--font); color: #fff; }
+.badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.bdg { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 6px; background: var(--card-2); color: var(--muted); }
+.bdg.go { background: var(--accent-soft); color: var(--accent); }
+.bdg.end { background: var(--warn-soft); color: var(--warn); }
+.cover { width: 112px; height: 112px; flex: none; border-radius: 10px; overflow: hidden; background: var(--card-2); }
+.cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Generated covers for events without photos */
+.gen { width: 100%; height: 100%; position: relative; display: grid; align-content: end; padding: 9px; color: #fff; overflow: hidden; }
+.gen b { font-size: 25px; font-weight: 800; letter-spacing: -.04em; line-height: .9; position: relative; z-index: 1; }
+.gen small { font: 500 8.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; opacity: .85; position: relative; z-index: 1; margin-top: 4px; }
+.gen::before { content: ""; position: absolute; width: 90%; aspect-ratio: 1; border-radius: 50%; right: -30%; top: -30%; background: rgba(255,255,255,.22); }
+.gen::after { content: ""; position: absolute; width: 45%; aspect-ratio: 1; border-radius: 0 60% 0 60%; right: 12%; top: 16%; background: rgba(255,255,255,.3); }
+.g-move { background: linear-gradient(135deg, #ff7a59, #e8336d); }
+.g-play { background: linear-gradient(135deg, #ffc233, #ff7a1a); }
+.g-wild { background: linear-gradient(135deg, #2fbf71, #0e7c86); }
+.g-arts { background: linear-gradient(135deg, #8b5cf6, #3b5bdb); }
+.g-learn { background: linear-gradient(135deg, #2f9ee8, #1b3fae); }
+.g-game { background: linear-gradient(135deg, #f43f5e, #b91c8b); }
+.g-help { background: linear-gradient(135deg, #84cc16, #15803d); }
+.g-park { background: linear-gradient(135deg, #14b8a6, #166534); }
+
+.empty { border: 1px dashed var(--faint); border-radius: 14px; padding: 48px 20px; text-align: center; color: var(--muted); display: grid; gap: 10px; justify-items: center; margin-top: 16px; }
+.empty b { color: var(--ink); font-size: 18px; }
+.more-wrap { display: flex; justify-content: center; padding-block: 8px 24px; }
+
+/* Sidebar */
+aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 16px; max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: none; }
+aside::-webkit-scrollbar { display: none; }
+.side { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
+.side h4 { margin: 0; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+.side h4 small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.side .pills { flex-wrap: wrap; overflow: visible; padding: 0; mask-image: none; }
+#map { width: 100%; height: auto; display: block; }
+#map path { fill: var(--card-2); stroke: var(--bg); stroke-width: 1.5; cursor: pointer; transition: fill .15s; }
+#map path:hover { fill: color-mix(in srgb, var(--accent) 18%, var(--card-2)); }
+#map path.on { fill: color-mix(in srgb, var(--accent) 26%, var(--card-2)); }
+#map text { font: 600 10.5px var(--font); fill: var(--muted); pointer-events: none; }
+#map circle { fill: var(--accent); fill-opacity: .7; cursor: pointer; }
+#map circle.hl { fill: var(--ink); fill-opacity: 1; stroke: var(--accent); stroke-width: 3; }
+.src { font-size: 12px; color: var(--muted); line-height: 1.5; padding-inline: 4px; }
+.src a { color: var(--muted); }
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  aside { position: static; max-height: none; overflow: visible; order: -1; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .mosaic { inset: 0 -20% 0 20%; opacity: .5; }
+  .hero::after { background: linear-gradient(90deg, var(--bg) 10%, color-mix(in srgb, var(--bg) 55%, transparent) 70%), linear-gradient(0deg, var(--bg), transparent 40%); }
+}
+@media (max-width: 520px) {
+  .cover { width: 84px; height: 84px; }
+  .card { gap: 12px; padding: 12px; }
+  .card h3 { font-size: 16px; }
+  .gen b { font-size: 19px; }
+  .top nav .hide-sm { display: none; }
+  .hero-in { padding-block: 40px 48px; }
+}
+
+/* Drawer */
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 30; opacity: 0; transition: opacity .2s; }
+.scrim.show { opacity: 1; }
+.drawer { position: fixed; z-index: 31; top: 0; right: 0; bottom: 0; width: min(500px, 100%); background: var(--card); border-left: 1px solid var(--line); overflow-y: auto; transform: translateX(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1); padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 28px); display: flex; flex-direction: column; gap: 18px; }
+.drawer > * { flex: none; }
+.drawer.show { transform: none; }
+.dbar { display: flex; justify-content: space-between; align-items: center; }
+.dhero { width: 100%; height: min(340px, 80vw); border-radius: 14px; overflow: hidden; background: var(--card-2); }
+.dhero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dhero .gen { padding: 20px; }
+.dhero .gen b { font-size: 64px; }
+.dhero .gen small { font-size: 12px; }
+.drawer h2 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.03em; font-weight: 700; text-wrap: balance; }
+.facts { display: grid; gap: 12px; }
+.fact { display: flex; gap: 12px; align-items: center; }
+.tile { width: 42px; height: 42px; flex: none; border-radius: 9px; border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; color: var(--muted); }
+.tile.date { grid-template-rows: 14px 1fr; place-items: stretch; text-align: center; }
+.tile.date span { font: 600 9px/14px var(--font); text-transform: uppercase; letter-spacing: .06em; background: var(--card-2); color: var(--muted); }
+.tile.date b { font-size: 17px; line-height: 26px; }
+.fact div { display: grid; min-width: 0; }
+.fact strong { font-weight: 600; }
+.fact small { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.dact { display: flex; gap: 8px; flex-wrap: wrap; }
+.dact .btn { flex: 1; }
+.dsec { display: grid; gap: 8px; }
+.dsec h5 { margin: 0; font-size: 13px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.dsec p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.reg-note { font-size: 13px; color: var(--muted); }
+
+.tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; line-height: 1.35; padding: 7px 10px; border-radius: 8px; max-width: 240px; }
+.tip b { display: block; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mosaic .col { animation: none; }
+  *, .drawer, .scrim { transition: none !important; }
+}
+</style>
+
+<header class="hero gut">
+  <div class="mosaic" id="mosaic" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="#events"><span class="mark"><i></i></span>Out in the Parks</a>
+      <nav><span class="clock" id="clock"></span><a class="hide-sm" href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">Data source</a></nav>
+    </div>
+    <div class="hero-in">
+      <div class="pin"><svg class="i" viewBox="0 0 24 24"><path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-3-6-6-10z"/><path d="M12 21v-8"/><path d="M12 15l-3-2.5M12 13l3-2.5"/></svg></div>
+      <h1><small>What's on in</small><span>NYC Parks</span></h1>
+      <div class="now"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="range"></span></div>
+      <p id="lede"></p>
+      <form class="hsearch" id="hsearch">
+        <input id="q" type="search" placeholder="Yoga, birding, Prospect Park…" autocomplete="off" aria-label="Search events">
+        <button class="btn pri" type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<main class="gut" id="events">
+  <div class="wrap events">
+    <div class="grid">
+      <section aria-labelledby="count">
+        <div class="ehead">
+          <h2 id="count"></h2>
+          <button class="iconbtn" id="clear" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear filters</button>
+        </div>
+        <div class="pills" id="days" aria-label="Pick a day"></div>
+        <div class="pills small" id="tods" aria-label="Time of day"></div>
+        <div class="tl" id="list"></div>
+      </section>
+
+      <aside>
+        <div class="side">
+          <h4>New York City <small>Tap a borough</small></h4>
+          <svg id="map" role="img" aria-label="Map of the five boroughs with a dot for each matching event"></svg>
+          <div class="pills" id="boros"></div>
+        </div>
+        <div class="side">
+          <h4>Interests</h4>
+          <div class="pills" id="cats"></div>
+        </div>
+        <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, captured <span id="fetched"></span>. Photos from each event's NYC Parks listing. Events can change; check the event page before you go.</p>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dtitle" hidden></div>
+<div class="tip" id="tip" hidden></div>
+
+<script>/*DATA*/</script>
+<script>
+(function () {
+  const D = window.PARKS_DATA;
+  const EV = D.events;
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const https = (u) => u ? u.replace(/^http:\/\/(www\.)?nycgovparks/, 'https://www.nycgovparks') : '';
+  const I = {
+    pin: '<svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    x: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    ext: '<svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+    user: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
+    phone: '<svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
+  };
+
+  // Photos: base64 WebP -> blob URLs (keeps markup small)
+  const IMG = D.imgs.map((b64) => {
+    const bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return URL.createObjectURL(new Blob([u8], { type: 'image/webp' }));
+  });
+
+  const BOROS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'];
+  const BCOL = { Manhattan: '#3b82f6', Brooklyn: '#f97316', Queens: '#a855f7', Bronx: '#ef4444', 'Staten Island': '#14b8a6' };
+  const TODS = [
+    { k: 'morning', label: 'Morning', test: (m) => m < 720 },
+    { k: 'afternoon', label: 'Afternoon', test: (m) => m >= 720 && m < 1020 },
+    { k: 'evening', label: 'Evening', test: (m) => m >= 1020 },
+  ];
+  const FAM = [
+    ['move', 'Move', /fitness|exercise|yoga|running|walking|dance classes|shape up/i],
+    ['wild', 'Wild', /nature|wildlife|garden|hiking|ranger|bird|forest|waterfront/i],
+    ['arts', 'Arts', /^art$|concert|film|movie|dance|festival|music|theater/i],
+    ['play', 'Play', /kids|crafts|games/i],
+    ['game', 'Game', /sport|basketball|tennis|soccer/i],
+    ['learn', 'Learn', /tour|history|education|talk|workshop/i],
+    ['help', 'Pitch in', /volunteer|it's my park/i],
+  ];
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const DOWL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  EV.forEach((e) => {
+    e.day = e.s.slice(0, 10);
+    e.min = +e.s.slice(11, 13) * 60 + +e.s.slice(14, 16);
+    e.hay = (e.t + ' ' + (e.p || '') + ' ' + e.l + ' ' + e.c.join(' ') + ' ' + e.d + ' ' + (e.i || '')).toLowerCase();
+    const f = FAM.find(([, , re]) => e.c.some((c) => re.test(c)));
+    e.fam = f ? f[0] : 'park'; e.famLabel = f ? f[1] : 'Parks';
+  });
+  const dateOf = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+  const fmtTime = (m) => { const h = Math.floor(m / 60), mm = m % 60; return ((h + 11) % 12 + 1) + ':' + String(mm).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
+  const toMin = (s) => +s.slice(11, 13) * 60 + +s.slice(14, 16);
+  const endMin = (e) => e.e && e.e.slice(0, 10) === e.day ? toMin(e.e) : null;
+  const dur = (e) => {
+    const em = endMin(e); if (em == null) return '';
+    const d = em - e.min; if (d <= 0) return '';
+    return d < 60 ? d + ' min' : (d % 60 ? (d / 60).toFixed(1).replace('.0', '') : d / 60) + ' hr';
+  };
+
+  function nycParts() {
+    try {
+      return Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+    } catch (_) { return null; }
+  }
+  const P = nycParts();
+  const NOW = P ? `${P.year}-${P.month}-${P.day}T${P.hour}:${P.minute}` : '';
+  const TODAY = NOW.slice(0, 10);
+  function tick() {
+    try { $('clock').textContent = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' }).format(new Date()); } catch (_) {}
+  }
+  tick(); setInterval(tick, 30000);
+
+  const first = EV[0].day, last = EV[EV.length - 1].day;
+  const DAYS = [];
+  for (let d = dateOf(first); d <= dateOf(last); d.setDate(d.getDate() + 1)) {
+    DAYS.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  }
+  const niceDate = (k, long) => { const d = dateOf(k); return (long ? DOWL : DOW)[d.getDay()] + ', ' + MON[d.getMonth()] + ' ' + d.getDate(); };
+  const relDay = (k) => {
+    if (!TODAY) return null;
+    const diff = Math.round((dateOf(k) - dateOf(TODAY)) / 864e5);
+    return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : null;
+  };
+
+  const catCount = {};
+  EV.forEach((e) => e.c.forEach((c) => (catCount[c] = (catCount[c] || 0) + 1)));
+  const CATS = Object.entries(catCount).sort((a, b) => b[1] - a[1]).slice(0, 16).map((x) => x[0]);
+  const parks = new Set(EV.map((e) => e.p).filter(Boolean));
+
+  $('range').textContent = MON[dateOf(first).getMonth()] + ' ' + dateOf(first).getDate() + ' – ' + MON[dateOf(last).getMonth()] + ' ' + dateOf(last).getDate() + ' · next 14 days';
+  $('lede').innerHTML = `<b>${EV.length.toLocaleString()} events</b> in ${parks.size} parks: sunrise workouts, ranger-led hikes, craft tables, concerts, and volunteer days, all across the five boroughs.`;
+  $('fetched').textContent = niceDate(D.fetched) + ', ' + D.fetched.slice(0, 4);
+
+  // Hero mosaic
+  (function () {
+    // One photo per distinct event title, spread across the whole two weeks
+    const seenT = new Set(), seenI = new Set(), pool = [];
+    EV.forEach((e) => { const t = e.t.toLowerCase(); if (e.im != null && !seenT.has(t) && !seenI.has(e.im)) { seenT.add(t); seenI.add(e.im); pool.push(e.im); } });
+    const step = Math.max(1, Math.floor(pool.length / 30));
+    const pick = pool.filter((_, i) => i % step === 0).slice(0, 30);
+    const cols = [[], [], [], [], []];
+    pick.forEach((im, i) => cols[i % 5].push(im));
+    $('mosaic').innerHTML = cols.map((c) => `<div class="col">${c.map((im) => `<img src="${IMG[im]}" alt="">`).join('')}</div>`).join('');
+  })();
+
+  const S = { day: 'all', boro: null, tod: null, cats: new Set(), q: '' };
+  try { const saved = JSON.parse(localStorage.getItem('parks-filters') || 'null'); if (saved) { S.boro = saved.boro || null; S.tod = saved.tod || null; S.cats = new Set((saved.cats || []).filter((c) => CATS.includes(c))); } } catch (_) {}
+  const save = () => { try { localStorage.setItem('parks-filters', JSON.stringify({ boro: S.boro, tod: S.tod, cats: [...S.cats] })); } catch (_) {} };
+
+  function match(e, skipDay) {
+    if (!skipDay && S.day !== 'all' && e.day !== S.day) return false;
+    if (S.boro && e.b !== S.boro) return false;
+    if (S.tod && !TODS.find((t) => t.k === S.tod).test(e.min)) return false;
+    if (S.cats.size && !e.c.some((c) => S.cats.has(c))) return false;
+    if (S.q) { for (const w of S.q.split(/\s+/)) if (w && !e.hay.includes(w)) return false; }
+    return true;
+  }
+
+  // Map
+  const map = $('map');
+  const K = Math.cos(40.7 * Math.PI / 180);
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  D.boros.forEach((b) => b.r.forEach((r) => r.forEach(([x, y]) => { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); })));
+  const SC = 1000, PAD = 6;
+  const px = (x) => ((x - minX) * K * SC + PAD).toFixed(1);
+  const py = (y) => ((maxY - y) * SC + PAD).toFixed(1);
+  const W = (maxX - minX) * K * SC + PAD * 2, H = (maxY - minY) * SC + PAD * 2;
+  map.setAttribute('viewBox', `0 0 ${W.toFixed(0)} ${H.toFixed(0)}`);
+  const LBL = { Manhattan: [-74.02, 40.80, 'end'], Brooklyn: [-73.95, 40.645, 'middle'], Queens: [-73.80, 40.72, 'middle'], Bronx: [-73.865, 40.855, 'middle'], 'Staten Island': [-74.15, 40.585, 'middle'] };
+  map.innerHTML =
+    D.boros.map((b) => `<path data-b="${esc(b.n)}" d="${b.r.map((r) => 'M' + r.map(([x, y]) => px(x) + ' ' + py(y)).join('L') + 'Z').join('')}"><title>${esc(b.n)}</title></path>`).join('') +
+    Object.entries(LBL).map(([n, [x, y, a]]) => `<text x="${px(x)}" y="${py(y)}" text-anchor="${a}">${n}</text>`).join('') +
+    '<g id="dots"></g>';
+
+  function renderControls() {
+    $('boros').innerHTML = [null, ...BOROS].map((b) => `<button class="pill" data-b="${b || ''}" aria-pressed="${S.boro === b}">${b || 'All five'}</button>`).join('');
+    $('tods').innerHTML = [{ k: null, label: 'Any time' }, ...TODS].map((t) => `<button class="pill" data-t="${t.k || ''}" aria-pressed="${S.tod === t.k}">${t.label}</button>`).join('');
+    $('cats').innerHTML = CATS.map((c) => `<button class="pill" data-c="${esc(c)}" aria-pressed="${S.cats.has(c)}">${esc(c)} <small>${catCount[c]}</small></button>`).join('');
+    map.querySelectorAll('path').forEach((p) => p.classList.toggle('on', p.dataset.b === S.boro));
+  }
+  const setBoro = (b) => { S.boro = b; save(); update(); };
+  $('boros').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setBoro(b.dataset.b || null); });
+  $('tods').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { S.tod = b.dataset.t || null; save(); update(); } });
+  $('cats').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; const c = b.dataset.c; S.cats.has(c) ? S.cats.delete(c) : S.cats.add(c); save(); update(); });
+  let qt; $('q').addEventListener('input', (e) => { clearTimeout(qt); qt = setTimeout(() => { S.q = e.target.value.trim().toLowerCase(); update(); }, 120); });
+  $('hsearch').addEventListener('submit', (e) => { e.preventDefault(); S.q = $('q').value.trim().toLowerCase(); update(); $('events').scrollIntoView({ behavior: 'smooth' }); });
+  $('clear').addEventListener('click', () => { Object.assign(S, { day: 'all', boro: null, tod: null, q: '' }); S.cats.clear(); $('q').value = ''; save(); update(); });
+
+  function renderDays() {
+    const counts = {}; let total = 0;
+    EV.forEach((e) => { if (match(e, true)) { counts[e.day] = (counts[e.day] || 0) + 1; total++; } });
+    $('days').innerHTML =
+      `<button class="pill" data-d="all" aria-pressed="${S.day === 'all'}"><b>All days</b> <small>${total}</small></button>` +
+      DAYS.map((k) => {
+        const d = dateOf(k), n = counts[k] || 0, rel = relDay(k);
+        return `<button class="pill" data-d="${k}" aria-pressed="${S.day === k}" aria-label="${niceDate(k, true)}, ${n} events"${n ? '' : ' disabled'}><b>${rel || DOW[d.getDay()]}</b> ${MON[d.getMonth()]} ${d.getDate()} <small>${n}</small></button>`;
+      }).join('');
+  }
+  $('days').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.disabled) { S.day = b.dataset.d; update(); } });
+
+  const cover = (e, big) => e.im != null
+    ? `<img src="${IMG[e.im]}" alt="" loading="lazy">`
+    : `<div class="gen g-${e.fam}"><b>${e.famLabel}</b><small>${esc(e.b || 'NYC')}</small></div>`;
+  const isPast = (e) => NOW && (e.e || e.s) < NOW;
+  const isLive = (e) => NOW && e.s <= NOW && (e.e || e.s) >= NOW;
+
+  function card(e) {
+    const past = isPast(e), live = isLive(e);
+    const badge = past ? '<span class="bdg end">Ended</span>' : live ? '<span class="bdg go">Happening now</span>' : e.r ? '<span class="bdg go">Registration</span>' : '';
+    return `<article class="card${past ? ' past' : ''}" data-id="${e.id}" role="button" tabindex="0" style="cursor:pointer">
+      <div class="cb">
+        <div class="ct">${fmtTime(e.min)}${dur(e) ? `<span>· ${dur(e)}</span>` : ''}</div>
+        <h3>${esc(e.t)}</h3>
+        <div class="meta"><span class="av" style="background:${BCOL[e.b] || '#888'}">${esc((e.b || 'N')[0])}</span><span>${esc(e.p || e.b || 'NYC Parks')}</span></div>
+        <div class="meta">${I.pin}<span>${esc(e.l.replace(/\s*\(in .*\)$/, ''))}</span></div>
+        <div class="badges">${badge}${e.c.slice(0, 2).map((c) => `<span class="bdg">${esc(c)}</span>`).join('')}</div>
+      </div>
+      <div class="cover">${cover(e)}</div>
+    </article>`;
+  }
+
+  const PAGE = 120;
+  let shown = [], limit = PAGE;
+  function renderList() {
+    shown = EV.filter((e) => match(e));
+    const n = shown.length;
+    $('count').innerHTML = `Events <small>${n.toLocaleString()}${S.day !== 'all' ? ' on ' + niceDate(S.day) : ''}</small>`;
+    $('clear').hidden = !(S.day !== 'all' || S.boro || S.tod || S.cats.size || S.q);
+    if (!n) {
+      $('list').innerHTML = `<div class="empty"><b>No events match</b><span>Try another day or loosen a filter.</span><button class="btn sec" id="clear2">Clear filters</button></div>`;
+      $('clear2').onclick = () => $('clear').click();
+      return;
+    }
+    const slice = shown.slice(0, limit);
+    const byDay = {};
+    slice.forEach((e) => (byDay[e.day] = byDay[e.day] || []).push(e));
+    const totals = {}; shown.forEach((e) => (totals[e.day] = (totals[e.day] || 0) + 1));
+    $('list').innerHTML = Object.entries(byDay).map(([k, list]) => {
+      const d = dateOf(k), rel = relDay(k);
+      return `<div class="day"><div class="dh${k === TODAY ? ' is-today' : ''}"><b>${rel || MON[d.getMonth()] + ' ' + d.getDate()}</b><span>${DOWL[d.getDay()]}</span><em>${totals[k]}</em></div>
+        <div class="cards">${list.map(card).join('')}</div></div>`;
+    }).join('') + (n > limit ? `<div class="more-wrap"><button class="btn sec" id="more">Show more events (${n - limit} left)</button></div>` : '');
+    const m = $('more'); if (m) m.onclick = () => { limit += PAGE * 2; renderList(); };
+  }
+  function renderDots() {
+    $('dots').innerHTML = shown.filter((e) => e.x).map((e) => `<circle data-id="${e.id}" cx="${px(e.x)}" cy="${py(e.y)}" r="3.6"></circle>`).join('');
+  }
+  function update() { limit = PAGE; renderControls(); renderDays(); renderList(); renderDots(); }
+
+  // Hover link between cards and dots
+  let hlId = null;
+  function highlight(id) {
+    if (hlId === id) return;
+    if (hlId) { const c = map.querySelector(`circle[data-id="${hlId}"]`); c && c.classList.remove('hl'); }
+    hlId = id;
+    if (id) { const c = map.querySelector(`circle[data-id="${id}"]`); if (c) { c.classList.add('hl'); c.parentNode.appendChild(c); } }
+  }
+  $('list').addEventListener('mouseover', (ev) => { const c = ev.target.closest('.card'); highlight(c ? c.dataset.id : null); });
+  $('list').addEventListener('mouseleave', () => highlight(null));
+  $('list').addEventListener('click', (ev) => { const c = ev.target.closest('.card'); if (c) openDrawer(c.dataset.id); });
+  $('list').addEventListener('keydown', (ev) => { const c = ev.target.closest('.card'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openDrawer(c.dataset.id); } });
+
+  // Drawer
+  const byId = Object.fromEntries(EV.map((e) => [e.id, e]));
+  const drawer = $('drawer'), scrim = $('scrim');
+  let lastFocus = null;
+  function openDrawer(id) {
+    const e = byId[id]; if (!e) return;
+    const d = dateOf(e.day), em = endMin(e);
+    const past = isPast(e);
+    drawer.innerHTML = `
+      <div class="dbar"><span class="bdg">${esc(e.famLabel)} · ${esc(e.b || 'NYC')}</span><button class="iconbtn" id="dclose" aria-label="Close">${I.x}Close</button></div>
+      <div class="dhero">${cover(e, true)}</div>
+      <h2 id="dtitle">${esc(e.t)}</h2>
+      <div class="facts">
+        <div class="fact"><div class="tile date"><span>${MON[d.getMonth()]}</span><b>${d.getDate()}</b></div><div><strong>${DOWL[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}</strong><small>${fmtTime(e.min)}${em != null ? ' – ' + fmtTime(em) : ''}${past ? ' · Ended' : ''}</small></div></div>
+        <div class="fact"><div class="tile">${I.pin}</div><div><strong>${esc(e.p || e.l)}</strong><small>${esc(e.l)}</small></div></div>
+        ${e.i ? `<div class="fact"><div class="tile">${I.user}</div><div><strong>Led by ${esc(e.i)}</strong><small>Instructor</small></div></div>` : ''}
+        ${e.ph ? `<div class="fact"><div class="tile">${I.phone}</div><div><strong style="user-select:all">${esc(e.ph)}</strong><small>Contact</small></div></div>` : ''}
+      </div>
+      <div class="dact">
+        ${e.r ? `<a class="btn acc" href="${esc(e.r)}" target="_blank" rel="noopener">Register ${I.ext}</a>` : ''}
+        <a class="btn ${e.r ? 'sec' : 'acc'}" href="${esc(https(e.u))}" target="_blank" rel="noopener">Event page ${I.ext}</a>
+      </div>
+      ${e.rd ? `<div class="reg-note">${esc(e.rd)}</div>` : ''}
+      ${e.d ? `<div class="dsec"><h5>About this event</h5><p>${esc(e.d)}</p></div>` : ''}
+      <div class="dsec"><h5>Categories</h5><div class="badges">${e.c.map((c) => `<span class="bdg">${esc(c)}</span>`).join('')}</div></div>`;
+    lastFocus = document.activeElement;
+    scrim.hidden = false; drawer.hidden = false; document.body.classList.add('lock');
+    requestAnimationFrame(() => { scrim.classList.add('show'); drawer.classList.add('show'); });
+    drawer.scrollTop = 0;
+    $('dclose').onclick = closeDrawer;
+    $('dclose').focus({ preventScroll: true });
+    highlight(id);
+  }
+  function closeDrawer() {
+    scrim.classList.remove('show'); drawer.classList.remove('show'); document.body.classList.remove('lock');
+    const done = () => { scrim.hidden = true; drawer.hidden = true; };
+    matchMedia('(prefers-reduced-motion: reduce)').matches ? done() : setTimeout(done, 260);
+    if (lastFocus) lastFocus.focus({ preventScroll: true });
+  }
+  scrim.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+
+  // Map interactions
+  const tip = $('tip');
+  map.addEventListener('mousemove', (ev) => {
+    const c = ev.target.closest('circle');
+    if (!c) { tip.hidden = true; return; }
+    const e = byId[c.dataset.id];
+    tip.innerHTML = `<b>${esc(e.t)}</b>${niceDate(e.day)} · ${fmtTime(e.min)}<br>${esc(e.p || e.l)}`;
+    tip.hidden = false;
+    tip.style.left = Math.min(ev.clientX + 12, window.innerWidth - 250) + 'px';
+    tip.style.top = (ev.clientY + 14) + 'px';
+  });
+  map.addEventListener('mouseleave', () => (tip.hidden = true));
+  map.addEventListener('click', (ev) => {
+    const c = ev.target.closest('circle');
+    if (c) { tip.hidden = true; openDrawer(c.dataset.id); return; }
+    const p = ev.target.closest('path'); if (p) setBoro(S.boro === p.dataset.b ? null : p.dataset.b);
+  });
+
+  update();
+})();
+</script>
