@@ -431,8 +431,9 @@ aside::-webkit-scrollbar { display: none; }
     return r.json();
   }
 
-  // Refresh button: pull the latest events straight from NYC Open Data
-  const refreshBtn = $('refresh');
+  // Refresh button: pull the latest events straight from NYC Open Data.
+  // Copies hosted where outside requests are blocked leave the button out.
+  const refreshBtn = $('refresh') || document.createElement('button');
   async function refresh(quiet) {
     refreshBtn.disabled = true; refreshBtn.classList.add('busy');
     try {
