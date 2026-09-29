@@ -1,0 +1,77 @@
+name: Update events and deploy
+
+# NYC Parks publishes this dataset once a day, usually a little after 9 AM
+# Eastern. Check hourly from 13:30 to 17:30 UTC (9:30 AM-1:30 PM EDT,
+# 8:30 AM-12:30 PM EST); build.py exits early unless the city has
+# published new rows, so most runs change nothing.
+on:
+  schedule:
+    - cron: '30 13-17 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if the city hasn't published new data
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        if: github.event_name != 'push'
+        with:
+          python-version: '3.12'
+
+      - name: Fetch latest data
+        id: build
+        if: github.event_name != 'push'
+        run: |
+          pip install --quiet pillow
+          python build/build.py ${{ inputs.force && '--force' || '' }}
+          if [ -n "$(git status --porcelain data img)" ]; then echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Commit new data
+        if: steps.build.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data img
+          git commit -m "Update events from NYC Open Data"
+          git push
+
+      - name: Assemble site
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || steps.build.outputs.changed == 'true'
+        id: site
+        run: |
+          mkdir _site
+          cp -r index.html data img _site/
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/configure-pages@v5
+        if: steps.site.outputs.ready == 'true'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.site.outputs.ready == 'true'
+        with:
+          path: _site
+
+      - uses: actions/deploy-pages@v4
+        id: deploy
+        if: steps.site.outputs.ready == 'true'
