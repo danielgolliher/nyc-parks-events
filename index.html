@@ -797,11 +797,20 @@ footer .credit nav a:hover { text-decoration: underline; }
     const seenT = new Set(), seenI = new Set(), pool = [];
     EV.forEach((e) => { const t = e.t.toLowerCase(); if (e.local && !seenT.has(t) && !seenI.has(e.img)) { seenT.add(t); seenI.add(e.img); pool.push(e.img); } });
     if (!pool.length) return;
+    // Fewer distinct photos on phones (fewer downloads), but every column is filled top to bottom,
+    // reusing photos as needed; repeats come from the browser cache
     const want = matchMedia('(max-width: 860px)').matches ? 15 : 30;
     const step = Math.max(1, Math.floor(pool.length / want));
     const pick = pool.filter((_, i) => i % step === 0).slice(0, want);
-    const cols = [[], [], [], [], []];
-    pick.forEach((src, i) => cols[i % 5].push(src));
+    const box = $('mosaic').getBoundingClientRect();
+    const tile = box.width / 5 + 10;  // five columns, 10px gaps
+    // Enough rows to cover the tilted, scaled field plus its 160px drift
+    const rows = Math.max(Math.ceil(pick.length / 5), Math.ceil(($('mosaic').parentElement.offsetHeight * 1.4 + 260) / tile));
+    // Step through the photos by a stride that shares no factor with their count, so a column shows
+    // every photo before repeating one; neighbouring columns start 3 apart
+    const n = pick.length, gcd = (a, b) => (b ? gcd(b, a % b) : a);
+    const stride = [7, 11, 13, 1].find((k) => gcd(k, n) === 1);
+    const cols = Array.from({ length: 5 }, (_, c) => Array.from({ length: rows }, (_, r) => pick[(r * stride + c * 3) % n]));
     $('mosaic').innerHTML = cols.map((c) => `<div class="col">${c.map((src) => `<img src="${esc(src)}" alt="" decoding="async" fetchpriority="low">`).join('')}</div>`).join('');
   }
 
