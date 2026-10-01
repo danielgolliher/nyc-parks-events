@@ -2,12 +2,25 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Every public event in NYC parks over the next two weeks, updated daily from NYC Open Data.">
+<title>What's on in NYC Parks: Events Across All Five Boroughs</title>
+<meta name="description" content="Fitness classes, concerts, ranger-led hikes, kids' activities, and volunteer days in New York City parks. Every public NYC Parks event in all five boroughs, updated daily.">
+<link rel="canonical" href="https://parkevents.nyc/">
 <meta name="theme-color" content="#f4f5f6" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#131517" media="(prefers-color-scheme: dark)">
+<!-- Social previews -->
+<meta property="og:site_name" content="What's on in NYC Parks">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://parkevents.nyc/">
 <meta property="og:title" content="What's on in NYC Parks">
-<meta property="og:description" content="Every public event in NYC parks over the next two weeks, updated daily from NYC Open Data.">
-<title>What's on in NYC Parks</title>
+<meta property="og:description" content="Every public event in NYC's parks, in all five boroughs, updated daily. Fitness classes, concerts, hikes, and more.">
+<meta property="og:image" content="https://parkevents.nyc/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="What's on in NYC Parks: every public event in the five boroughs, updated daily">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@danielgolliher">
+<script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebSite", "@id": "https://parkevents.nyc/#website", "name": "What's on in NYC Parks", "alternateName": "parkevents.nyc", "url": "https://parkevents.nyc/", "description": "Fitness classes, concerts, ranger-led hikes, kids' activities, and volunteer days in New York City parks. Every public NYC Parks event in all five boroughs, updated daily.", "inLanguage": "en-US", "publisher": {"@id": "https://parkevents.nyc/#daniel"}}, {"@type": "Person", "@id": "https://parkevents.nyc/#daniel", "name": "Daniel Golliher", "sameAs": ["https://x.com/danielgolliher", "https://www.linkedin.com/in/danielgolliher", "https://maximumnewyork.com"]}]}</script>
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -162,6 +175,7 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .card.past .cover { filter: grayscale(.7); }
 .cb { flex: 1; min-width: 0; display: grid; gap: 5px; align-content: start; }
 .ct { font-size: 14px; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; display: flex; gap: 6px; flex-wrap: wrap; }
+.card h3 a.clink { color: inherit; text-decoration: none; }
 .card h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; text-wrap: pretty; overflow-wrap: anywhere; }
 .meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); min-width: 0; }
 .meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -569,6 +583,7 @@ footer .credit nav a:hover { text-decoration: underline; }
   // Analytics (Google Analytics 4). A no-op off the live site, where gtag isn't defined.
   // Parameter names avoid GA's reserved ones (e.g. "value") and must be registered as custom dimensions to show in reports.
   const track = (name, data) => { try { if (window.gtag) window.gtag('event', name, data || {}); } catch (_) {} };
+  const pageUrl = (e) => `${location.origin}/events/${encodeURIComponent(e.id)}/`;
   const evData = (e, from) => ({ event_title: e.t.slice(0, 100), park: (e.p || e.l || '').slice(0, 100), borough: e.b || 'Unknown', ...(from ? { opened_from: from } : {}) });
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const https = (u) => u ? u.replace(/^http:\/\//, 'https://') : '';
@@ -578,6 +593,7 @@ footer .credit nav a:hover { text-decoration: underline; }
   const I = {
     pin: '<svg class="i" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
     x: '<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    share: '<svg class="i" viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg>',
     ext: '<svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
     user: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
     cal: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
@@ -925,7 +941,7 @@ footer .credit nav a:hover { text-decoration: underline; }
     return `<article class="card${past ? ' past' : ''}" data-id="${esc(e.id)}" role="button" tabindex="0" style="cursor:pointer">
       <div class="cb">
         <div class="ct">${fmtTime(e.min)}${dur(e) ? `<span>· ${dur(e)}</span>` : ''}</div>
-        <h3>${esc(e.t)}</h3>
+        <h3><a class="clink" href="/events/${encodeURIComponent(e.id)}/">${esc(e.t)}</a></h3>
         <div class="meta"><span class="av" style="background:${BCOL[e.b] || '#888'}">${esc((e.b || 'N')[0])}</span><span>${esc(e.p || e.b || 'NYC Parks')}</span></div>
         <div class="meta">${I.pin}<span>${esc(e.l.replace(/\s*\(in .*\)$/, ''))}</span></div>
         <div class="badges">${badge}${e.c.slice(0, 2).map((c) => `<span class="bdg">${esc(c)}</span>`).join('')}</div>
@@ -991,7 +1007,11 @@ footer .credit nav a:hover { text-decoration: underline; }
   }
   $('list').addEventListener('mouseover', (ev) => { const c = ev.target.closest('.card'); highlight(c ? c.dataset.id : null); });
   $('list').addEventListener('mouseleave', () => highlight(null));
-  $('list').addEventListener('click', (ev) => { const c = ev.target.closest('.card'); if (c) openDrawer(c.dataset.id, 'feed'); });
+  $('list').addEventListener('click', (ev) => {
+    const c = ev.target.closest('.card'); if (!c) return;
+    if (ev.target.closest('a.clink')) { if (ev.metaKey || ev.ctrlKey || ev.shiftKey) return; ev.preventDefault(); }
+    openDrawer(c.dataset.id, 'feed');
+  });
   $('list').addEventListener('keydown', (ev) => { const c = ev.target.closest('.card'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openDrawer(c.dataset.id, 'feed'); } });
 
   const drawer = $('drawer'), scrim = $('scrim');
@@ -1014,6 +1034,7 @@ footer .credit nav a:hover { text-decoration: underline; }
         ${e.r ? `<a class="btn acc" href="${esc(e.r)}" target="_blank" rel="noopener" data-track="click_register">Register ${I.ext}</a>` : ''}
         ${e.u ? `<a class="btn ${e.r ? 'sec' : 'acc'}" href="${esc(e.u)}" target="_blank" rel="noopener" data-track="click_event_page">Event page ${I.ext}</a>` : ''}
         ${e.y != null ? `<button class="btn sec" type="button" id="dmap">${I.map}Show on map</button>` : ''}
+        <button class="btn sec" type="button" id="dshare">${I.share}Share</button>
       </div>
       ${e.rd ? `<div class="reg-note">${esc(e.rd)}</div>` : ''}
       ${e.d ? `<div class="dsec"><h5>About this event</h5><p>${esc(e.d)}</p></div>` : ''}
@@ -1025,6 +1046,13 @@ footer .credit nav a:hover { text-decoration: underline; }
     drawer.scrollTop = 0;
     $('dclose').onclick = closeDrawer;
     if ($('dmap')) $('dmap').onclick = () => { track('show_on_map', evData(e)); closeDrawer(); openMap(e); };
+    // Shares the event's own page, which has a proper link preview
+    $('dshare').onclick = async () => {
+      const url = pageUrl(e), title = e.t;
+      track('share_event', evData(e));
+      if (navigator.share) { try { await navigator.share({ title, url }); } catch (_) {} return; }
+      try { await navigator.clipboard.writeText(url); toast('Link copied'); } catch (_) { prompt('Copy this link:', url); }
+    };
     $('dclose').focus({ preventScroll: true });
     highlight(id);
   }
@@ -1360,6 +1388,7 @@ footer .credit nav a:hover { text-decoration: underline; }
   if (params.get('confirm')) confirmFromLink(params.get('confirm'));
   else if (params.get('manage')) manageFromLink(params.get('manage'));
   else if (params.get('unsubscribe')) unsubscribe(params.get('unsubscribe'));
+  else if (params.has('signup')) signupForm();
   else if (params.has('thanks')) { track('support_thanks'); done('Thank you!', "Your support helps keep What's on in NYC Parks free and ad-free for everyone."); }
   // Tidy the address bar; Google Analytics already has the landing URL (minus tokens) from the tag in <head>
   if (location.search) history.replaceState(history.state, '', location.pathname + location.hash);

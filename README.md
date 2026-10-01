@@ -28,6 +28,15 @@ NYC Parks updates the events dataset automatically once a day, typically a littl
 | `favicon.*`, `apple-touch-icon.png`, `icon-512.png`, `site.webmanifest` | Site icons |
 | `img/` | Event photos, resized to 320px WebP |
 | `build/build.py` | Refreshes everything in `data/` and `img/` |
+| `build/pages.py` | At deploy time, writes a page per event (`/events/<id>/`), `sitemap.xml`, `robots.txt`, and `404.html` |
+| `build/cards.py`, `build/fonts/` | Draws each event's 1200×630 link-preview card (`/og/<id>.jpg`) with Pillow and Geist (SIL Open Font License) |
+| `og-image.png` | Link-preview image for the homepage |
+
+## Link previews and search
+
+Link previews and search engines read a page's HTML without running its JavaScript, so every event also gets its own static page at `/events/<id>/`. The deploy workflow builds them fresh from `data/events.json` each time (they aren't committed). Each page has its own title, description, canonical URL, Open Graph and Twitter tags, a preview card in the site's style, and schema.org `Event` data for Google's event listings. Titles in the calendar link to these pages, and the **Share** button in an event's details shares them. Pages for past events disappear with the next deploy; old links land on `404.html`, which hands them to the calendar.
+
+To build them locally: `pip install pillow && python build/pages.py _site` after copying the site files into `_site/`.
 
 ## Email digests
 
