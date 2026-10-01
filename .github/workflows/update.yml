@@ -61,7 +61,7 @@ jobs:
         id: site
         run: |
           mkdir _site
-          cp -r index.html favicon.svg favicon.ico apple-touch-icon.png icon-512.png site.webmanifest og-image.png data img _site/
+          cp -r index.html favicon.svg favicon.ico apple-touch-icon.png icon-512.png site.webmanifest og-image.png fonts data img _site/
           # A page and preview card per event (for link previews and search), plus sitemap.xml, robots.txt and 404.html
           pip install --quiet pillow
           python build/pages.py _site

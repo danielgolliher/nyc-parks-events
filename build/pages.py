@@ -135,6 +135,10 @@ def ld_script(obj):
 
 # ---- Shared page shell -----------------------------------------------------------------
 CSS = """
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 800;font-display:swap;src:url(/fonts/geist-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 800;font-display:swap;src:url(/fonts/geist-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/geist-mono-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/geist-mono-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
 :root{--bg:#f4f5f6;--card:#fff;--card-2:#eceef0;--ink:#131517;--muted:#6e7174;--line:rgba(19,21,23,.09);--accent:#0c8f58;--accent-ink:#fff;--accent-soft:rgba(12,143,88,.12);--font:"Geist",system-ui,-apple-system,"Segoe UI",sans-serif}
 @media (prefers-color-scheme:dark){:root{--bg:#131517;--card:#1b1d20;--card-2:#25282b;--ink:#f4f5f6;--muted:#95989b;--line:rgba(255,255,255,.08);--accent:#3fdc98;--accent-ink:#07170f;--accent-soft:rgba(63,220,152,.14);color-scheme:dark}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);-webkit-font-smoothing:antialiased}
@@ -185,8 +189,7 @@ def shell(*, title, description, canonical, image, image_alt, body, head_extra='
 {img_meta}
 <meta name="theme-color" content="#0c8f58">
 <link rel="icon" href="/favicon.ico" sizes="32x32"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap">
+<link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>{CSS}</style>
 <script>
 if (/(^|\\.)parkevents\\.nyc$/.test(location.hostname)) {{
@@ -278,8 +281,31 @@ if (m) location.replace('/?event=' + m[1]);
                  image=f'{SITE}/og-image.png', image_alt=NAME, body=body, noindex=True)
 
 
+MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+
+def prefill_home(events):
+    """Fill in the homepage's date range and event count, matching what its script writes after loading,
+    so the hero doesn't change size (and shift the page) when the data arrives."""
+    path = os.path.join(OUT, 'index.html')
+    if not os.path.exists(path) or not events:
+        return
+    now = datetime.now(NY)
+    up = sum(1 for e in events if (e['end'] or e['start']) >= now)
+    parks = len({e['park'] for e in events if e['park']})
+    first, last = events[0]['start'], max(e['start'] for e in events)
+    rng = f"{MON[first.month - 1]} {first.day} – {MON[last.month - 1]} {last.day} · next 14 days"
+    lede = (f"<b>{up:,} upcoming events</b> in {parks} parks: sunrise workouts, ranger-led hikes, craft tables, "
+            "concerts, and volunteer days, all across the five boroughs.")
+    s = open(path, encoding='utf-8').read()
+    s = s.replace('<span id="range">Next 14 days</span>', f'<span id="range">{rng}</span>', 1)
+    s = re.sub(r'<p id="lede">.*?</p>', f'<p id="lede">{lede}</p>', s, count=1, flags=re.S)
+    open(path, 'w', encoding='utf-8').write(s)
+
+
 def main():
     events, meta = load()
+    prefill_home(events)
     by_park = {}
     for e in events:
         by_park.setdefault(e['park'], []).append(e)

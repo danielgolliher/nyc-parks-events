@@ -4,6 +4,11 @@ import { sql, ensureSchema } from '../lib/db.js';
 import { cors, body, fail, newToken, validEmail, cleanFrequency, cleanBoroughs } from '../lib/http.js';
 import { confirmEmail, manageEmail } from '../lib/email.js';
 import { sendOne } from '../lib/send.js';
+import { createHash } from 'node:crypto';
+
+const PER_IP_PER_HOUR = 5;    // signup attempts from one address
+const EMAILS_PER_HOUR = 60;   // account emails across everyone, to protect the sending quota
+const ipHash = (req) => createHash('sha256').update(`${process.env.CRON_SECRET || ''}:${(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket?.remoteAddress || ''}`).digest('hex').slice(0, 32);
 
 const DONE = { ok: true, message: 'Check your inbox for a link to confirm.' };
 
@@ -20,6 +25,14 @@ export default async function handler(req, res) {
 
   try {
     await ensureSchema();
+    // Rate limits. Over a limit, answer the same way but don't send anything.
+    const ip = ipHash(req);
+    const [{ n: tries }] = await sql`select count(*)::int as n from signup_attempts where ip_hash = ${ip} and at > now() - interval '1 hour'`;
+    await sql`insert into signup_attempts (ip_hash) values (${ip})`;
+    if (Math.random() < 0.05) await sql`delete from signup_attempts where at < now() - interval '1 day'`;
+    if (tries >= PER_IP_PER_HOUR) { console.warn('signup rate limit hit'); return res.json(DONE); }
+    const [{ n: sentLastHour }] = await sql`select count(*)::int as n from subscribers where last_email_at > now() - interval '1 hour'`;
+    if (sentLastHour >= EMAILS_PER_HOUR) { console.warn('hourly signup email cap hit'); return res.json(DONE); }
     const [existing] = await sql`select * from subscribers where email = ${email}`;
     // At most one account email per address every two minutes
     if (existing && existing.last_email_at && Date.now() - new Date(existing.last_email_at) < 120e3) return res.json(DONE);

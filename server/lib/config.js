@@ -7,6 +7,7 @@ export const EMAIL_FROM = env.EMAIL_FROM || "What's on in NYC Parks <events@park
 export const EMAIL_REPLY_TO = env.EMAIL_REPLY_TO || '';
 export const SUPPORT_URL = env.SUPPORT_URL || '';        // Stripe Payment Link
 export const MAILING_ADDRESS = env.MAILING_ADDRESS || ''; // shown in email footers
+export const ADMIN_EMAIL = env.ADMIN_EMAIL || '';         // gets a note when someone confirms a signup
 export const ALLOWED_ORIGINS = (env.ALLOWED_ORIGINS || 'https://parkevents.nyc,https://www.parkevents.nyc,http://localhost:8766').split(',').map((s) => s.trim());
 
 export const BOROS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'];

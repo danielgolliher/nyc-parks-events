@@ -167,3 +167,26 @@ export function manageEmail(sub) {
   const text = `You're already subscribed\n\nThis address gets ${what}. Change your settings here:\n${href}\n\n${CREDIT_TEXT}`;
   return { subject, html, text };
 }
+
+// ---- Note to the site owner --------------------------------------------------------
+export function newSubscriberEmail(sub, stats) {
+  const what = `${FREQUENCIES[sub.frequency].label}, ${boroLabel(sub.boroughs)}`;
+  const subject = `New subscriber: ${stats.active} total`;
+  const row = (label, n) => `<tr><td style="padding:6px 0;font:400 15px/1.4 ${FONT};color:${C.muted}">${label}</td><td align="right" style="padding:6px 0;font:600 15px/1.4 ${FONT};color:${C.ink}">${n.toLocaleString('en-US')}</td></tr>`;
+  const html = layout({
+    title: subject, preheader: `${sub.email} just confirmed. ${stats.active} subscribers in total.`,
+    body: card(`
+      <div style="font:500 13px/1.4 ${FONT};color:${C.muted}">New subscriber</div>
+      <h1 style="margin:6px 0 4px;font:700 24px/1.25 ${FONT};letter-spacing:-0.5px;color:${C.ink};word-break:break-all">${esc(sub.email)}</h1>
+      <p style="margin:0 0 18px;font:400 15px/1.55 ${FONT};color:${C.ink}">Just confirmed: ${esc(what)}.</p>
+      <div style="font:800 40px/1 ${FONT};color:${C.accent};letter-spacing:-1px">${stats.active.toLocaleString('en-US')}</div>
+      <div style="font:500 14px/1.4 ${FONT};color:${C.muted};margin:4px 0 14px">active subscribers in total</div>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${C.line}">
+        ${row('Daily', stats.daily)}${row('Weekly', stats.weekly)}${row('Every two weeks', stats.biweekly)}
+        ${row('Signed up, not yet confirmed', stats.pending)}${row('Unsubscribed', stats.unsubscribed)}
+      </table>`),
+    footer: 'Sent to you as the owner of parkevents.nyc each time someone confirms a signup.',
+  });
+  const text = `New subscriber: ${sub.email} (${what})\n\nActive subscribers: ${stats.active}\n  Daily: ${stats.daily}\n  Weekly: ${stats.weekly}\n  Every two weeks: ${stats.biweekly}\nNot yet confirmed: ${stats.pending}\nUnsubscribed: ${stats.unsubscribed}`;
+  return { subject, html, text };
+}

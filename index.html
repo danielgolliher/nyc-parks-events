@@ -38,10 +38,13 @@ if (/(^|\.)parkevents\.nyc$/.test(location.hostname)) {
   document.head.appendChild(Object.assign(document.createElement('script'), { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-M6RK1SPK4Q' }));
 }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Geist and Geist Mono (SIL Open Font License), served from /fonts */
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 800;font-display:swap;src:url(/fonts/geist-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Geist';font-style:normal;font-weight:400 800;font-display:swap;src:url(/fonts/geist-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/geist-mono-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
+@font-face{font-family:'Geist Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(/fonts/geist-mono-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
 /* Layout: city-calendar style. Photo-mosaic hero, then a dated timeline of event cards | sticky sidebar (map + filters). Detail opens in a side drawer. */
 :root {
   --bg: #f4f5f6;
@@ -78,6 +81,7 @@ if (/(^|\.)parkevents\.nyc$/.test(location.hostname)) {
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 html { scroll-padding-top: 60px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 body.lock { overflow: hidden; }
@@ -127,7 +131,7 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .hero p b { color: var(--accent); font-weight: 600; }
 .hsearch { display: flex; gap: 8px; margin-top: 8px; max-width: 420px; }
 .hsearch input { flex: 1; min-width: 0; font: 500 16px var(--font); color: var(--ink); background: color-mix(in srgb, var(--card) 85%, transparent); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px; }
-.hsearch input::placeholder { color: var(--faint); }
+.hsearch input::placeholder { color: var(--muted); }
 .hsearch input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .btn { border: 0; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; text-decoration: none; white-space: nowrap; }
 .btn.pri { background: var(--ink); color: var(--bg); }
@@ -148,12 +152,16 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .pills::-webkit-scrollbar { display: none; }
 .pill { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 500; display: inline-flex; gap: 6px; align-items: baseline; color: var(--muted); }
 .pill b { color: var(--ink); font-weight: 600; }
-.pill small { font: 400 11px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.pill small { font: 400 11px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pill:hover { border-color: var(--faint); }
 .pill[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 .pill[aria-pressed="true"] b, .pill[aria-pressed="true"] small { color: var(--bg); }
 .pill:disabled { opacity: .4; cursor: default; }
 .pills.small .pill { padding: 5px 11px; }
+/* Hold the filter rows' space until the data arrives and fills them, so the list doesn't jump down */
+#days:empty, #mdays:empty { min-height: 53px; }
+#tods:empty, #boros:empty { min-height: 51px; }
+.ehead .seg:empty { min-height: 37px; min-width: 168px; }
 
 /* Timeline */
 .tl { position: relative; margin-top: 8px; }
@@ -164,7 +172,7 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .dh.is-today::before { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .dh b { font-weight: 600; }
 .dh span { color: var(--muted); }
-.dh em { font-style: normal; margin-left: auto; font: 400 12px var(--mono); color: var(--faint); }
+.dh em { font-style: normal; margin-left: auto; font: 400 12px var(--mono); color: var(--muted); }
 .cards { display: grid; gap: 12px; padding-bottom: 16px; }
 
 .card { display: flex; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 14px 16px; box-shadow: var(--shadow); text-align: left; width: 100%; transition: border-color .15s, transform .15s; }
@@ -175,7 +183,11 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .card.past .cover { filter: grayscale(.7); }
 .cb { flex: 1; min-width: 0; display: grid; gap: 5px; align-content: start; }
 .ct { font-size: 14px; color: var(--muted); font-weight: 500; font-variant-numeric: tabular-nums; display: flex; gap: 6px; flex-wrap: wrap; }
+.card { position: relative; cursor: pointer; }
 .card h3 a.clink { color: inherit; text-decoration: none; }
+.card h3 a.clink::after { content: ""; position: absolute; inset: 0; border-radius: 14px; } /* whole card is the link's click area */
+.card h3 a.clink:focus-visible { outline: none; }
+.card:has(a.clink:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .card h3 { margin: 0; font-size: 18px; line-height: 1.25; font-weight: 600; letter-spacing: -.015em; text-wrap: pretty; overflow-wrap: anywhere; }
 .meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted); min-width: 0; }
 .meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -210,10 +222,10 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 aside { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 16px; max-height: calc(100vh - 32px); overflow-y: auto; scrollbar-width: none; }
 aside::-webkit-scrollbar { display: none; }
 .side { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; box-shadow: var(--shadow); }
-.side h4 { margin: 0; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
-.side h4 small { font-size: 12px; color: var(--muted); font-weight: 400; }
+.side h3 { margin: 0; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+.side h3 small { font-size: 12px; color: var(--muted); font-weight: 400; }
 .side .pills { flex-wrap: wrap; overflow: visible; padding: 0; mask-image: none; }
-#map { width: 100%; height: auto; display: block; }
+#map { width: 100%; height: auto; display: block; aspect-ratio: 436 / 452; } /* NYC's shape, reserved before the outlines load */
 #map path { fill: var(--card-2); stroke: var(--bg); stroke-width: 1.5; cursor: pointer; transition: fill .15s; }
 #map path:hover { fill: color-mix(in srgb, var(--accent) 18%, var(--card-2)); }
 #map path.on { fill: color-mix(in srgb, var(--accent) 26%, var(--card-2)); }
@@ -229,7 +241,7 @@ aside::-webkit-scrollbar { display: none; }
 /* Upcoming / Past switch */
 .seg { display: inline-flex; background: var(--card-2); border-radius: 10px; padding: 3px; gap: 2px; }
 .seg button { border: 0; background: none; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--muted); display: inline-flex; gap: 6px; align-items: baseline; }
-.seg button small { font: 400 11px var(--mono); color: var(--faint); font-variant-numeric: tabular-nums; }
+.seg button small { font: 400 11px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .seg button[aria-selected="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
 .ehead .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .feednote { margin: 14px 0 0; font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
@@ -271,9 +283,10 @@ footer .credit nav a:hover { text-decoration: underline; }
   .feednote { order: 6; }
   #list { order: 7; }
   aside .side { background: none; border: 0; box-shadow: none; padding: 0; gap: 0; }
-  aside .side h4, .mapwrap { display: none; }
+  aside .side h3, .mapwrap { display: none; }
   aside .side .pills { flex-wrap: nowrap; overflow-x: auto; padding-block: 8px 0; mask-image: linear-gradient(90deg, #000 92%, transparent); }
   .promo.feed { display: grid; }
+  aside #cats:empty { min-height: 41px; }
   .fab { display: inline-flex; }
   main { padding-bottom: 72px; }
   footer { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); } /* clear the floating map button */
@@ -299,6 +312,10 @@ footer .credit nav a:hover { text-decoration: underline; }
 }
 /* Bigger tap targets on touch screens */
 @media (pointer: coarse) {
+  #days:empty, #mdays:empty { min-height: 59px; }
+  #tods:empty, #boros:empty { min-height: 57px; }
+  .ehead .seg:empty { min-height: 43px; }
+  aside #cats:empty { min-height: 47px; }
   .pill { padding: 9px 14px; }
   .pills.small .pill { padding: 8px 13px; }
   .seg button { padding: 9px 14px; }
@@ -345,7 +362,7 @@ footer .credit nav a:hover { text-decoration: underline; }
 .cal-h b { font-size: 15px; font-weight: 600; }
 .cal-h small { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .cal-g { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.cal-g .dw { font-size: 11px; font-weight: 500; color: var(--faint); text-align: center; padding-bottom: 2px; }
+.cal-g .dw { font-size: 11px; font-weight: 500; color: var(--muted); text-align: center; padding-bottom: 2px; }
 .cal-g button { min-height: 50px; border: 0; border-radius: 10px; background: var(--card-2); display: grid; align-content: center; justify-items: center; gap: 1px; padding: 4px 0; font-weight: 600; font-size: 15px; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .cal-g button small { font: 400 10px var(--mono); color: var(--muted); }
 .cal-g button .mo { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); }
@@ -474,7 +491,7 @@ footer .credit nav a:hover { text-decoration: underline; }
     <div class="hero-in">
       <div class="pin"><svg class="i" viewBox="0 0 24 24"><path d="M12 3c-3 4-6 6.5-6 10a6 6 0 0 0 12 0c0-3.5-3-6-6-10z"/><path d="M12 21v-8"/><path d="M12 15l-3-2.5M12 13l3-2.5"/></svg></div>
       <h1><small>What's on in</small><span>NYC Parks</span></h1>
-      <div class="now"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="range"></span></div>
+      <div class="now"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="range">Next 14 days</span></div>
       <p id="lede">Fitness classes, ranger-led hikes, craft tables, concerts, and volunteer days across the five boroughs.</p>
       <form class="hsearch" id="hsearch">
         <input id="q" type="search" placeholder="Yoga, birding, Prospect Park…" autocomplete="off" aria-label="Search events">
@@ -495,23 +512,23 @@ footer .credit nav a:hover { text-decoration: underline; }
             <button class="iconbtn" id="clear" hidden><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear filters</button>
           </div>
         </div>
-        <div class="pills" id="days" aria-label="Pick a day"></div>
-        <div class="pills small" id="tods" aria-label="Time of day"></div>
-        <div class="pills small" id="boros" aria-label="Borough"></div>
+        <div class="pills" id="days" role="group" aria-label="Pick a day"></div>
+        <div class="pills small" id="tods" role="group" aria-label="Time of day"></div>
+        <div class="pills small" id="boros" role="group" aria-label="Borough"></div>
         <p class="feednote" id="feednote" hidden><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Events move here on their own once they end. Most recent first.</p>
         <div class="tl" id="list"><div class="empty"><b>Loading events…</b><span>Pulling the next two weeks of NYC Parks events.</span></div></div>
       </section>
 
       <aside>
         <div class="side">
-          <h4>New York City <small>Tap a borough</small></h4>
+          <h3>New York City <small>Tap a borough</small></h3>
           <div class="mapwrap">
             <svg id="map" role="img" aria-label="Map of the five boroughs with a dot for each matching event"></svg>
             <button class="btn acc expand" type="button" data-openmap><svg class="i" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Explore events via map</button>
           </div>
         </div>
         <div class="side">
-          <h4>Interests</h4>
+          <h3>Interests</h3>
           <div class="pills" id="cats"></div>
         </div>
       </aside>
@@ -549,7 +566,7 @@ footer .credit nav a:hover { text-decoration: underline; }
   <div class="mx-bar">
     <button class="btn pri mx-back" id="mxclose" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back to events</button>
     <div class="seg" role="tablist" aria-label="Upcoming or past events" data-feed></div>
-    <div class="pills" id="mdays" aria-label="Pick a day"></div>
+    <div class="pills" id="mdays" role="group" aria-label="Pick a day"></div>
   </div>
   <div class="mx-body">
     <div id="lmap"></div>
@@ -566,7 +583,7 @@ footer .credit nav a:hover { text-decoration: underline; }
 <div class="cal" id="cal" role="dialog" aria-label="Pick a date" hidden></div>
 <div class="modal" id="modal" hidden>
   <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="mtitle">
-    <div class="mhead"><h2 id="mtitle"></h2><button class="iconbtn" id="mclose" type="button" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Close</button></div>
+    <div class="mhead"><h2 id="mtitle">Email updates</h2><button class="iconbtn" id="mclose" type="button" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Close</button></div>
     <div id="mbody"></div>
   </div>
 </div>
@@ -710,10 +727,12 @@ footer .credit nav a:hover { text-decoration: underline; }
     const parks = new Set(EV.map((e) => e.p).filter(Boolean));
     if (DAYS.length) {
       const f = dateOf(DAYS[0]), l = dateOf(DAYS[DAYS.length - 1]);
-      $('range').textContent = `${MON[f.getMonth()]} ${f.getDate()} – ${MON[l.getMonth()]} ${l.getDate()} · next 14 days`;
+      const range = `${MON[f.getMonth()]} ${f.getDate()} – ${MON[l.getMonth()]} ${l.getDate()} · next 14 days`;
+      if ($('range').textContent !== range) $('range').textContent = range;
     }
     const upN = EV.filter((e) => !isPast(e)).length;
-    $('lede').innerHTML = `<b>${upN.toLocaleString()} upcoming events</b> in ${parks.size} parks: sunrise workouts, ranger-led hikes, craft tables, concerts, and volunteer days, all across the five boroughs.`;
+    const lede = `<b>${upN.toLocaleString()} upcoming events</b> in ${parks.size} parks: sunrise workouts, ranger-led hikes, craft tables, concerts, and volunteer days, all across the five boroughs.`;
+    if ($('lede').innerHTML !== lede) $('lede').innerHTML = lede;
     $('upd').textContent = 'Updated ' + stamp(META.rowsUpdatedAt);
     $('fetched').textContent = stamp(META.rowsUpdatedAt);
     renderMosaic();
@@ -775,11 +794,12 @@ footer .credit nav a:hover { text-decoration: underline; }
     const seenT = new Set(), seenI = new Set(), pool = [];
     EV.forEach((e) => { const t = e.t.toLowerCase(); if (e.local && !seenT.has(t) && !seenI.has(e.img)) { seenT.add(t); seenI.add(e.img); pool.push(e.img); } });
     if (!pool.length) return;
-    const step = Math.max(1, Math.floor(pool.length / 30));
-    const pick = pool.filter((_, i) => i % step === 0).slice(0, 30);
+    const want = matchMedia('(max-width: 860px)').matches ? 15 : 30;
+    const step = Math.max(1, Math.floor(pool.length / want));
+    const pick = pool.filter((_, i) => i % step === 0).slice(0, want);
     const cols = [[], [], [], [], []];
     pick.forEach((src, i) => cols[i % 5].push(src));
-    $('mosaic').innerHTML = cols.map((c) => `<div class="col">${c.map((src) => `<img src="${esc(src)}" alt="">`).join('')}</div>`).join('');
+    $('mosaic').innerHTML = cols.map((c) => `<div class="col">${c.map((src) => `<img src="${esc(src)}" alt="" decoding="async" fetchpriority="low">`).join('')}</div>`).join('');
   }
 
   // ---- Map --------------------------------------------------------------------
@@ -860,7 +880,7 @@ footer .credit nav a:hover { text-decoration: underline; }
       `<button class="pill" data-d="all" aria-pressed="${S.day === 'all'}"><b>All days</b> <small>${total}</small></button>` +
       days.map((k) => {
         const d = dateOf(k), n = counts[k] || 0, rel = relDay(k);
-        return `<button class="pill" data-d="${k}" aria-pressed="${S.day === k}" aria-label="${niceDate(k, true)}, ${n} events"${n ? '' : ' disabled'}><b>${rel || DOW[d.getDay()]}</b> ${MON[d.getMonth()]} ${d.getDate()} <small>${n}</small></button>`;
+        return `<button class="pill" data-d="${k}" aria-pressed="${S.day === k}" title="${niceDate(k, true)}"${n ? '' : ' disabled'}><b>${rel || DOW[d.getDay()]}</b> ${MON[d.getMonth()]} ${d.getDate()} <small>${n}<span class="sr"> events</span></small></button>`;
       }).join('');
     $('days').innerHTML = html; $('mdays').innerHTML = html;
   }
@@ -887,8 +907,8 @@ footer .credit nav a:hover { text-decoration: underline; }
       const k = keyOf(d);
       if (d < first || d > last) { cells += '<span></span>'; continue; }
       const n = dayCounts[k] || 0, mo = k === DAYS[0] || d.getDate() === 1;
-      cells += `<button type="button" data-d="${k}" aria-pressed="${S.day === k}" class="${k === TODAY ? 'today' : ''}" aria-label="${niceDate(k, true)}, ${n} event${n === 1 ? '' : 's'}"${n ? '' : ' disabled'}>` +
-        `${mo ? `<span class="mo">${MON[d.getMonth()]}</span>` : ''}${d.getDate()}<small>${n}</small></button>`;
+      cells += `<button type="button" data-d="${k}" aria-pressed="${S.day === k}" class="${k === TODAY ? 'today' : ''}"${n ? '' : ' disabled'}>` +
+        `<span class="sr">${niceDate(k, true)}: </span>${mo ? `<span class="mo">${MON[d.getMonth()]}</span>` : ''}${d.getDate()}<small>${n}<span class="sr"> event${n === 1 ? '' : 's'}</span></small></button>`;
     }
     cal.innerHTML = `<div class="cal-h"><b>Pick a date</b><small>${MON[first.getMonth()]} ${first.getDate()} – ${MON[last.getMonth()]} ${last.getDate()}</small></div>
       <div class="cal-g">${DOW.map((w) => `<span class="dw">${w[0]}</span>`).join('')}${cells}</div>
@@ -938,7 +958,7 @@ footer .credit nav a:hover { text-decoration: underline; }
   function card(e) {
     const past = isPast(e), live = isLive(e);
     const badge = past ? '<span class="bdg end">Ended</span>' : live ? '<span class="bdg go">Happening now</span>' : e.r ? '<span class="bdg go">Registration</span>' : '';
-    return `<article class="card${past ? ' past' : ''}" data-id="${esc(e.id)}" role="button" tabindex="0" style="cursor:pointer">
+    return `<article class="card${past ? ' past' : ''}" data-id="${esc(e.id)}">
       <div class="cb">
         <div class="ct">${fmtTime(e.min)}${dur(e) ? `<span>· ${dur(e)}</span>` : ''}</div>
         <h3><a class="clink" href="/events/${encodeURIComponent(e.id)}/">${esc(e.t)}</a></h3>
@@ -1012,7 +1032,6 @@ footer .credit nav a:hover { text-decoration: underline; }
     if (ev.target.closest('a.clink')) { if (ev.metaKey || ev.ctrlKey || ev.shiftKey) return; ev.preventDefault(); }
     openDrawer(c.dataset.id, 'feed');
   });
-  $('list').addEventListener('keydown', (ev) => { const c = ev.target.closest('.card'); if (c && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); openDrawer(c.dataset.id, 'feed'); } });
 
   const drawer = $('drawer'), scrim = $('scrim');
   let lastFocus = null, curEv = null;
@@ -1428,7 +1447,8 @@ footer .credit nav a:hover { text-decoration: underline; }
   // ---- Start: load the site's saved snapshot, or go live if it's missing ----------
   getJSON('data/boros.json').then((b) => { BORO_DATA = b; drawMap(b); if (EV.length) update(); }).catch(() => {});
   Promise.all([getJSON('data/events.json'), getJSON('data/meta.json')])
-    .then(([rows, meta]) => setData(rows, meta))
+    // Let the browser paint the page first; building ~1,000 cards before the first paint would hold up everything on screen
+    .then(([rows, meta]) => new Promise((go) => (document.hidden ? go() : requestAnimationFrame(() => setTimeout(go)))).then(() => setData(rows, meta)))
     .catch(() => refresh(true));
 })();
 </script>
