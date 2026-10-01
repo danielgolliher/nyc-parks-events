@@ -235,6 +235,11 @@ footer .fcta { display: grid; gap: 8px; justify-items: start; max-width: 380px; 
 footer .fcta b { font-size: 17px; letter-spacing: -.01em; }
 footer .fcta span { color: var(--muted); font-size: 14px; }
 footer .src { max-width: 460px; }
+footer .credit { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: center; gap: 6px 14px; font-size: 15px; color: var(--muted); }
+footer .credit b { color: var(--ink); font-weight: 600; }
+footer .credit nav { display: flex; gap: 14px; }
+footer .credit nav a { color: var(--accent); font-weight: 600; text-decoration: none; }
+footer .credit nav a:hover { text-decoration: underline; }
 
 /* Floating map button (phones and tablets) */
 .fab { display: none; position: fixed; z-index: 15; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); border: 0; border-radius: 999px; padding: 13px 22px; background: var(--accent); color: var(--accent-ink); font-weight: 600; white-space: nowrap; font-size: 14px; align-items: center; gap: 8px; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
@@ -257,6 +262,7 @@ footer .src { max-width: 460px; }
   .promo.feed { display: grid; }
   .fab { display: inline-flex; }
   main { padding-bottom: 72px; }
+  footer { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); } /* clear the floating map button */
   .mosaic { inset: 0 -20% 0 20%; opacity: .5; }
   .hero::after { background: linear-gradient(90deg, var(--bg) 10%, color-mix(in srgb, var(--bg) 55%, transparent) 70%), linear-gradient(0deg, var(--bg), transparent 40%); }
 }
@@ -517,6 +523,14 @@ footer .src { max-width: 460px; }
       <a class="btn sec support-link" href="#" target="_blank" rel="noopener" data-support="footer"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Chip in $2</a>
     </div>
     <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go. This site uses Google Analytics to count visits and see which events people look at.</p>
+  </div>
+  <div class="wrap credit">
+    <span>🗽 Made and maintained by <b>Daniel Golliher</b></span>
+    <nav aria-label="Daniel Golliher elsewhere">
+      <a href="https://x.com/danielgolliher" target="_blank" rel="noopener">X</a>
+      <a href="https://www.linkedin.com/in/danielgolliher" target="_blank" rel="noopener">LinkedIn</a>
+      <a href="https://maximumnewyork.com" target="_blank" rel="noopener">Substack</a>
+    </nav>
   </div>
 </footer>
 

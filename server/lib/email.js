@@ -9,6 +9,9 @@ const FAMCOL = { Move: '#e8336d', Play: '#ff7a1a', Wild: '#0e7c86', Arts: '#3b5b
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DOWL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+// Creator credit, at the bottom of every email
+const LINKS = [['X', 'https://x.com/danielgolliher'], ['LinkedIn', 'https://www.linkedin.com/in/danielgolliher'], ['Substack', 'https://maximumnewyork.com']];
+const CREDIT_TEXT = `🗽 Made and maintained by Daniel Golliher\n${LINKS.map(([n, u]) => `${n}: ${u}`).join('\n')}`;
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtTime = (m) => { const h = Math.floor(m / 60); return ((h + 11) % 12 + 1) + ':' + String(m % 60).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
 const dayName = (k) => { const [, m, d] = k.split('-').map(Number); return `${DOWL[weekdayOf(k)]}, ${MON[m - 1]} ${d}`; };
@@ -43,7 +46,8 @@ function layout({ title, preheader, body, footer }) {
     <img src="${SITE_URL}/icon-512.png" width="28" height="28" alt="" style="vertical-align:middle;border:0;border-radius:7px;margin-right:8px">What's on in NYC Parks</a>
 </td></tr>
 ${body}
-<tr><td style="padding:20px 4px 0;font:400 12px/1.6 ${FONT};color:${C.muted}">${footer}</td></tr>
+<tr><td style="padding:8px 4px 0;font:400 14px/1.6 ${FONT};color:${C.muted}">🗽 Made and maintained by <b style="color:${C.ink};font-weight:600">Daniel Golliher</b><br>${LINKS.map(([n, u]) => `<a href="${u}" style="color:${C.accent};font-weight:600;text-decoration:none">${n}</a>`).join(' &nbsp;·&nbsp; ')}</td></tr>
+<tr><td style="padding:14px 4px 0;font:400 12px/1.6 ${FONT};color:${C.muted}">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
 }
 const card = (inner, { pad = '24px', bg = C.card, border = C.line } = {}) =>
@@ -125,7 +129,7 @@ export function digestEmail(sub, sel) {
     ]),
     SUPPORT_URL ? `Help keep the site live by covering basic site costs. Chip in $2: ${SUPPORT_URL}\n` : '',
     `Change your settings: ${SITE_URL}/?manage=${sub.token}`, `Unsubscribe: ${SITE_URL}/?unsubscribe=${sub.token}`,
-    MAILING_ADDRESS,
+    MAILING_ADDRESS, '', CREDIT_TEXT,
   ].filter((l) => l !== undefined).join('\n');
   return { subject, html, text };
 }
@@ -144,7 +148,7 @@ export function confirmEmail(sub) {
       <p style="margin:18px 0 0;font:400 13px/1.5 ${FONT};color:${C.muted}">Didn't sign up? Ignore this email and you won't hear from us.</p>`),
     footer: `Sent because someone entered this address at <a href="${SITE_URL}" style="color:${C.muted}">parkevents.nyc</a>.${MAILING_ADDRESS ? `<br>${esc(MAILING_ADDRESS)}` : ''}`,
   });
-  const text = `Confirm your NYC Parks event emails\n\nYou asked for ${what}. Confirm your address and your first email goes out right away:\n${href}\n\nDidn't sign up? Ignore this email and you won't hear from us.`;
+  const text = `Confirm your NYC Parks event emails\n\nYou asked for ${what}. Confirm your address and your first email goes out right away:\n${href}\n\nDidn't sign up? Ignore this email and you won't hear from us.\n\n${CREDIT_TEXT}`;
   return { subject, html, text };
 }
 
@@ -160,6 +164,6 @@ export function manageEmail(sub) {
       ${button(href, 'Change my settings')}`),
     footer: `Sent because someone entered this address at <a href="${SITE_URL}" style="color:${C.muted}">parkevents.nyc</a>.${MAILING_ADDRESS ? `<br>${esc(MAILING_ADDRESS)}` : ''}`,
   });
-  const text = `You're already subscribed\n\nThis address gets ${what}. Change your settings here:\n${href}`;
+  const text = `You're already subscribed\n\nThis address gets ${what}. Change your settings here:\n${href}\n\n${CREDIT_TEXT}`;
   return { subject, html, text };
 }
