@@ -29,6 +29,22 @@ NYC Parks updates the events dataset automatically once a day, typically a littl
 | `img/` | Event photos, resized to 320px WebP |
 | `build/build.py` | Refreshes everything in `data/` and `img/` |
 
+## Email digests
+
+People sign up on the site for daily, weekly (Thursdays), or every-two-weeks (every other Thursday) emails, filtered to the boroughs they pick. The API in [`server/`](server/) runs on Vercel as the `parkevents-api` project (https://parkevents-api.vercel.app):
+
+| Endpoint | What it does |
+| --- | --- |
+| `POST /api/subscribe` | Saves a signup and emails a confirmation link |
+| `POST /api/confirm` | Confirms the address and sends the first digest right away |
+| `GET/POST /api/subscription` | Reads or changes settings (from the link in every email) |
+| `POST /api/unsubscribe` | Unsubscribes; also handles Gmail/Yahoo one-click unsubscribe |
+| `GET /api/cron/digest` | Vercel Cron, daily at 11:00 UTC: sends whatever is due |
+
+Subscribers live in Neon Postgres (connected through the Vercel marketplace); mail goes out through Resend from `events@parkevents.nyc`. Environment variables on Vercel: `DATABASE_URL` (from Neon), `RESEND_API_KEY`, `CRON_SECRET`, and optionally `SUPPORT_URL` (Stripe Payment Link), `MAILING_ADDRESS`, `EMAIL_REPLY_TO`.
+
+To preview the email templates with the site's current data: `cd server && npm install && node scripts/preview.mjs`, then open the files in `server/previews/`. To deploy the API: `cd server && npx vercel@latest deploy --prod`.
+
 ## Analytics
 
 Google Analytics 4 (`G-M6RK1SPK4Q`) loads only on parkevents.nyc, so local runs aren't counted. Besides page views, the site sends these events: `open_event`, `click_register`, `click_event_page`, `show_on_map`, `open_map`, `search`, `filter_borough`, `filter_time_of_day`, `filter_interest`, `filter_day`, `switch_feed`, `clear_filters`, and `email_signup_click`. Their parameters (`event_title`, `park`, `borough`, `opened_from`, `filter_value`, `selected_via`, `view`, `placement`) are registered as event-scoped custom dimensions in GA so they show up in reports.

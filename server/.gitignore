@@ -1,0 +1,10 @@
+node_modules/
+.vercel/
+.env*
+previews/
+.vercel
+
+# Neon installer's AI-assistant docs (not part of the app)
+.agents/
+.claude/
+skills-lock.json

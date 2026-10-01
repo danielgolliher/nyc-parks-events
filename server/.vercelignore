@@ -1,0 +1,5 @@
+previews/
+.agents/
+.claude/
+skills-lock.json
+scripts/

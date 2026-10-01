@@ -15,6 +15,7 @@ on:
         default: false
   push:
     branches: [main]
+    paths-ignore: ['server/**']  # the email API deploys to Vercel, not Pages
 
 permissions:
   contents: write

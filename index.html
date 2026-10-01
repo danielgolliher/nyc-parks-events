@@ -18,7 +18,10 @@ if (/(^|\.)parkevents\.nyc$/.test(location.hostname)) {
   window.dataLayer = window.dataLayer || [];
   window.gtag = function () { dataLayer.push(arguments); };
   gtag('js', new Date());
-  gtag('config', 'G-M6RK1SPK4Q');
+  // Email links carry private tokens; strip them from the URL Google Analytics records
+  var loc = new URL(location.href);
+  ['confirm', 'manage', 'unsubscribe'].forEach(function (k) { loc.searchParams.delete(k); });
+  gtag('config', 'G-M6RK1SPK4Q', { page_location: loc.href });
   document.head.appendChild(Object.assign(document.createElement('script'), { async: true, src: 'https://www.googletagmanager.com/gtag/js?id=G-M6RK1SPK4Q' }));
 }
 </script>
@@ -334,6 +337,48 @@ footer .src { max-width: 460px; }
 .cal-g button[aria-pressed="true"] small, .cal-g button[aria-pressed="true"] .mo { color: var(--bg); }
 .cal-f { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 
+/* Email signup and settings dialog */
+.modal { position: fixed; inset: 0; z-index: 35; background: var(--scrim); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+.mcard { width: min(460px, 100%); background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.3); padding: 20px; display: grid; gap: 16px; }
+.mhead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.mhead h2 { margin: 0; font-size: 22px; line-height: 1.2; letter-spacing: -.02em; }
+#mbody { display: grid; gap: 16px; }
+#mbody form { display: grid; gap: 16px; }
+.mlede { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.mlede b { color: var(--ink); font-weight: 600; }
+.fld { display: grid; gap: 8px; min-width: 0; }
+.fld > .lbl { font-size: 13px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.fld > .lbl small { font-weight: 400; color: var(--muted); }
+.fld input[type="email"] { font: 500 16px var(--font); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; width: 100%; }
+.fld input[type="email"]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.freq { display: grid; gap: 8px; }
+.freq label { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.freq label:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.freq input { grid-row: span 2; margin: 0; width: 18px; height: 18px; accent-color: var(--accent); }
+.freq b { font-size: 15px; font-weight: 600; }
+.freq small { grid-column: 2; font-size: 13px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { position: relative; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 14px; font-weight: 500; color: var(--muted); background: var(--card); cursor: pointer; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip:has(input:checked) { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; }
+.merr { margin: 0; color: var(--warn); font-size: 14px; }
+.btn.big { width: 100%; padding: 13px 18px; font-size: 15px; }
+.btn:disabled { opacity: .6; cursor: progress; }
+.mfine { margin: 0; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }
+.linkbtn { background: none; border: 0; padding: 4px; color: var(--muted); font-size: 13px; text-decoration: underline; justify-self: center; }
+.mdone { display: grid; gap: 8px; justify-items: start; }
+.mdone .ok { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.mdone .ok svg.i { width: 24px; height: 24px; stroke-width: 2.2; }
+.mdone p { margin: 0; font-size: 15px; line-height: 1.55; }
+.mspin { display: flex; gap: 10px; align-items: center; color: var(--muted); }
+.mspin::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@media (max-width: 520px) {
+  .modal { place-items: end stretch; padding: 0; }
+  .mcard { width: 100%; border-radius: 18px 18px 0 0; padding: 18px 16px calc(env(safe-area-inset-bottom, 0px) + 20px); max-height: 94vh; overflow-y: auto; }
+}
+
 /* Full-screen map explorer */
 .mapx { position: fixed; inset: 0; z-index: 25; background: var(--bg); display: flex; flex-direction: column; }
 .mx-bar { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 8px 14px; align-items: center; padding: calc(env(safe-area-inset-top, 0px) + 10px) max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--line); background: var(--card); }
@@ -451,7 +496,7 @@ footer .src { max-width: 460px; }
         </div>
         <div class="promo side-promo">
           <b>Park events in your inbox</b>
-          <p>A weekly roundup of free concerts, classes, and hikes in the parks near you.</p>
+          <p>Free concerts, classes, and hikes in the boroughs you pick, daily, weekly, or every two weeks.</p>
           <button class="btn acc signup" type="button" data-signup="sidebar"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
         </div>
       </aside>
@@ -463,8 +508,13 @@ footer .src { max-width: 460px; }
   <div class="wrap">
     <div class="fcta">
       <b>Never miss a park event</b>
-      <span>Get a weekly email with what's coming up in NYC parks.</span>
+      <span>Get an email with what's coming up in the parks: daily, weekly, or every two weeks, for the boroughs you choose.</span>
       <button class="btn acc signup" type="button" data-signup="footer"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
+    </div>
+    <div class="fcta support" hidden>
+      <b>Help keep this free</b>
+      <span>This site is independent and ad-free, run by one person. If it helps you get outside, chip in $2 or whatever you like.</span>
+      <a class="btn sec support-link" href="#" target="_blank" rel="noopener" data-support="footer"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Chip in $2</a>
     </div>
     <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go. This site uses Google Analytics to count visits and see which events people look at.</p>
   </div>
@@ -491,6 +541,12 @@ footer .src { max-width: 460px; }
 <div class="scrim" id="scrim" hidden></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dtitle" hidden></div>
 <div class="cal" id="cal" role="dialog" aria-label="Pick a date" hidden></div>
+<div class="modal" id="modal" hidden>
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="mtitle">
+    <div class="mhead"><h2 id="mtitle"></h2><button class="iconbtn" id="mclose" type="button" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>Close</button></div>
+    <div id="mbody"></div>
+  </div>
+</div>
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -516,6 +572,8 @@ footer .src { max-width: 460px; }
     ext: '<svg class="i" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
     user: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>',
     cal: '<svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+    check: '<svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    heart: '<svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
     mail: '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>',
     map: '<svg class="i" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>',
     phone: '<svg class="i" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
@@ -634,7 +692,9 @@ footer .src { max-width: 460px; }
     $('upd').textContent = 'Updated ' + stamp(META.rowsUpdatedAt);
     $('fetched').textContent = stamp(META.rowsUpdatedAt);
     renderMosaic();
+    applyLinkFilters();
     update();
+    openLinkedEvent();
   }
 
   async function getJSON(url) {
@@ -886,7 +946,7 @@ footer .src { max-width: 460px; }
     shown.slice(0, limit).forEach((e) => (byDay[e.day] = byDay[e.day] || []).push(e));
     const totals = {}; shown.forEach((e) => (totals[e.day] = (totals[e.day] || 0) + 1));
     // On phones an email signup card sits after the first day
-    const promo = `<div class="promo feed"><b>Park events in your inbox</b><p>A weekly roundup of free concerts, classes, and hikes in the parks near you.</p><button class="btn acc signup" type="button" data-signup="feed">${I.mail}Sign up for emails</button></div>`;
+    const promo = `<div class="promo feed"><b>Park events in your inbox</b><p>Free concerts, classes, and hikes in the boroughs you pick, daily, weekly, or every two weeks.</p><button class="btn acc signup" type="button" data-signup="feed">${I.mail}Sign up for emails</button></div>`;
     $('list').innerHTML = Object.entries(byDay).map(([k, list], i) => {
       const d = dateOf(k), rel = relDay(k);
       return `<div class="day"><div class="dh${k === TODAY ? ' is-today' : ''}"><b>${rel || MON[d.getMonth()] + ' ' + d.getDate()}</b><span>${DOWL[d.getDay()]}</span><em>${totals[k]}</em></div>
@@ -970,6 +1030,7 @@ footer .src { max-width: 460px; }
   drawer.addEventListener('click', (ev) => { const a = ev.target.closest('[data-track]'); if (a && curEv) track(a.dataset.track, evData(curEv)); });
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
+    if (!modal.hidden) return closeModal();
     if (!cal.hidden) return closeCal(true);
     if (!drawer.hidden) closeDrawer(); else if (!mapx.hidden) closeMap();
   });
@@ -1153,13 +1214,156 @@ footer .src { max-width: 460px; }
     track('open_map', { opened_from: b.classList.contains('fab') ? 'floating button' : 'sidebar' });
     openMap();
   });
-  // Email signup buttons aren't wired up yet, but counting clicks shows how much interest there is
-  document.addEventListener('click', (e) => { const b = e.target.closest('.signup'); if (b) track('email_signup_click', { placement: b.dataset.signup }); });
   $('mxlist').addEventListener('click', (e) => { const r = e.target.closest('.mrow'); if (r) openDrawer(r.dataset.id, 'map'); });
   $('mxhead').addEventListener('click', (e) => {
     if (e.target.closest('#mxall')) { selLoc = null; drawMarkers(); renderPanel(); return; }
     $('mxpanel').classList.toggle('open');
   });
+
+  // ---- Email signups and support ----------------------------------------------------
+  // The email API lives in server/ and runs on Vercel. SUPPORT_URL is a Stripe Payment Link;
+  // support buttons stay hidden until it's set.
+  const API = 'https://parkevents-api.vercel.app';
+  const SUPPORT_URL = '';
+  const FREQ = [
+    ['daily', 'Daily', "Each morning: that day's events"],
+    ['weekly', 'Weekly', 'Thursday mornings: the next 7 days'],
+    ['biweekly', 'Every 2 weeks', 'Every other Thursday: the next 14 days'],
+  ];
+  const FREQ_WORD = { daily: 'every morning', weekly: 'every Thursday', biweekly: 'every other Thursday' };
+  const boroText = (list) => {
+    if (!list || !list.length) return 'all five boroughs';
+    const n = list.map((b) => (b === 'Bronx' ? 'the Bronx' : b));
+    return n.length < 3 ? n.join(' and ') : n.slice(0, -1).join(', ') + ', and ' + n[n.length - 1];
+  };
+  async function api(path, payload) {
+    let r;
+    try { r = await fetch(API + path, payload ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) } : undefined); }
+    catch (_) { throw new Error("Couldn't reach the server. Check your connection and try again."); }
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.ok) throw new Error(d.message || 'Something went wrong. Please try again.');
+    return d;
+  }
+
+  const modal = $('modal');
+  let modalReturn = null;
+  function showModal(title, html) {
+    if (modal.hidden) { modalReturn = document.activeElement; modal.hidden = false; document.body.classList.add('lock'); }
+    $('mtitle').textContent = title;
+    $('mbody').innerHTML = html;
+    ($('mbody').querySelector('input[type="email"], .btn, button') || $('mclose')).focus({ preventScroll: true });
+  }
+  function closeModal() {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    if (drawer.hidden && mapx.hidden) document.body.classList.remove('lock');
+    if (modalReturn && document.contains(modalReturn)) modalReturn.focus({ preventScroll: true });
+  }
+  $('mclose').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal || e.target.closest('[data-mclose]')) closeModal(); });
+
+  const supportBox = (where) => SUPPORT_URL ? `<div class="promo"><b>Help keep this free</b><p>This site is independent and ad-free, run by one person. If it's useful to you, chip in $2 or whatever you like.</p><a class="btn acc support-link" href="${esc(SUPPORT_URL)}" target="_blank" rel="noopener" data-support="${where}">${I.heart}Chip in $2</a></div>` : '';
+  const done = (title, text, extra = '') => showModal(title, `<div class="mdone"><span class="ok">${I.check}</span><p>${text}</p></div>${extra}`);
+  const loading = (title, text) => showModal(title, `<p class="mspin">${text}</p>`);
+  const failed = (title, msg) => showModal(title, `<p class="mlede">${esc(msg)}</p><button class="btn sec big" type="button" data-mclose>Close</button>`);
+
+  // One form for new signups and for changing settings from an email link
+  function signupForm({ mode = 'new', email = '', frequency = 'weekly', boroughs = [], token = '' } = {}) {
+    const manage = mode === 'manage';
+    showModal(manage ? 'Your email settings' : 'Get park events by email', `
+      <form id="sgform" novalidate>
+        ${manage ? `<p class="mlede">Emails go to <b>${esc(email)}</b>.</p>` : `<p class="mlede">A short email with what's coming up in the parks. Free, and you can unsubscribe anytime.</p>
+        <label class="fld"><span class="lbl">Email</span><input type="email" name="email" required autocomplete="email" placeholder="you@example.com" value="${esc(email)}"></label>`}
+        <div class="fld" role="radiogroup" aria-labelledby="sgfreq"><span class="lbl" id="sgfreq">How often</span>
+          <div class="freq">${FREQ.map(([k, label, hint]) => `<label><input type="radio" name="frequency" value="${k}"${k === frequency ? ' checked' : ''}><b>${label}</b><small>${hint}</small></label>`).join('')}</div>
+        </div>
+        <div class="fld" role="group" aria-labelledby="sgboro"><span class="lbl" id="sgboro">Boroughs <small>Leave all unselected for all five</small></span>
+          <div class="chips">${BOROS.map((b) => `<label class="chip"><input type="checkbox" name="boroughs" value="${b}"${boroughs.includes(b) ? ' checked' : ''}>${b}</label>`).join('')}</div>
+        </div>
+        <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="merr" id="sgerr" role="alert" hidden></p>
+        <button class="btn acc big" type="submit">${manage ? 'Save changes' : `${I.mail}Sign up`}</button>
+        ${manage ? '<button class="linkbtn" type="button" id="sgunsub">Unsubscribe from all emails</button>' : "<p class=\"mfine\">We'll email you a link to confirm. Your address is only used for these emails.</p>"}
+      </form>`);
+    const form = $('sgform');
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const fd = new FormData(form), err = $('sgerr'), btn = form.querySelector('[type="submit"]');
+      const data = { frequency: fd.get('frequency'), boroughs: fd.getAll('boroughs') };
+      if (!manage) {
+        data.email = String(fd.get('email') || '').trim();
+        data.website = fd.get('website');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) { err.textContent = 'Enter a valid email address.'; err.hidden = false; form.email.focus(); return; }
+      }
+      err.hidden = true; btn.disabled = true;
+      try {
+        if (manage) {
+          const d = await api('/api/subscription', { token, ...data });
+          track('email_settings_saved', { frequency: d.frequency, borough_count: d.boroughs.length || 5 });
+          done('Saved', `You'll get emails ${FREQ_WORD[d.frequency]} about events in ${esc(boroText(d.boroughs))}.`, supportBox('settings'));
+        } else {
+          await api('/api/subscribe', data);
+          track('email_signup_submit', { frequency: data.frequency, borough_count: data.boroughs.length || 5 });
+          done('Check your inbox', `We sent a link to <b>${esc(data.email)}</b>. Click it to confirm, and your first email goes out right away.`, supportBox('signup'));
+        }
+      } catch (e) { err.textContent = e.message; err.hidden = false; btn.disabled = false; }
+    });
+    if (manage) $('sgunsub').addEventListener('click', () => unsubscribe(token));
+  }
+
+  async function unsubscribe(token) {
+    loading('Unsubscribing', 'One moment…');
+    try {
+      await api('/api/unsubscribe', { token });
+      track('email_unsubscribe');
+      done("You're unsubscribed", "You won't get any more emails from us.", '<button class="btn sec big" type="button" id="resub">Changed your mind? Resubscribe</button>');
+      $('resub').addEventListener('click', () => manageFromLink(token));
+    } catch (e) { failed("Couldn't unsubscribe", e.message); }
+  }
+  async function manageFromLink(token) {
+    loading('Your email settings', 'Loading your settings…');
+    try { const d = await api('/api/subscription?token=' + encodeURIComponent(token)); signupForm({ mode: 'manage', token, ...d }); }
+    catch (e) { failed('Your email settings', e.message); }
+  }
+  async function confirmFromLink(token) {
+    loading('Confirming', 'Confirming your email…');
+    try {
+      const d = await api('/api/confirm', { token });
+      track('email_confirmed', { frequency: d.frequency });
+      done("You're subscribed", `${d.firstSent ? 'Your first email is on its way. After that, you' : 'You'}'ll get one ${FREQ_WORD[d.frequency]} about events in ${esc(boroText(d.boroughs))}.`, supportBox('confirmed'));
+    } catch (e) { failed("Couldn't confirm", e.message); }
+  }
+
+  // Signup buttons open the form, pre-set to the borough being browsed (or the open event's borough)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('.signup'); if (!b) return;
+    track('email_signup_click', { placement: b.dataset.signup });
+    const boro = b.dataset.signup === 'drawer' && curEv ? curEv.b : S.boro;
+    signupForm({ boroughs: boro ? [boro] : [] });
+  });
+  document.querySelectorAll('.support').forEach((el) => (el.hidden = !SUPPORT_URL));
+  document.querySelectorAll('.support-link').forEach((a) => (a.href = SUPPORT_URL || '#'));
+  document.addEventListener('click', (e) => { const a = e.target.closest('.support-link'); if (a) track('support_click', { placement: a.dataset.support }); });
+
+  // Links from emails and Stripe: ?confirm= ?manage= ?unsubscribe= ?thanks=1, and ?event= ?day= ?boro= to open a listing
+  const params = new URLSearchParams(location.search);
+  const LINK = { event: params.get('event'), day: params.get('day'), boro: params.get('boro') };
+  if (params.get('confirm')) confirmFromLink(params.get('confirm'));
+  else if (params.get('manage')) manageFromLink(params.get('manage'));
+  else if (params.get('unsubscribe')) unsubscribe(params.get('unsubscribe'));
+  else if (params.has('thanks')) { track('support_thanks'); done('Thank you!', "Your support helps keep What's on in NYC Parks free and ad-free for everyone."); }
+  // Tidy the address bar; Google Analytics already has the landing URL (minus tokens) from the tag in <head>
+  if (location.search) history.replaceState(history.state, '', location.pathname + location.hash);
+  function applyLinkFilters() {
+    if (LINK.boro && BOROS.includes(LINK.boro)) S.boro = LINK.boro;
+    if (LINK.day && DAYS.includes(LINK.day)) S.day = LINK.day;
+    LINK.boro = LINK.day = null;
+  }
+  function openLinkedEvent() {
+    if (!LINK.event) return;
+    if (byId[LINK.event]) openDrawer(LINK.event, 'link'); else toast("That event isn't listed anymore. Here's what's coming up.");
+    LINK.event = null;
+  }
 
   // ---- Start: load the site's saved snapshot, or go live if it's missing ----------
   getJSON('data/boros.json').then((b) => { BORO_DATA = b; drawMap(b); if (EV.length) update(); }).catch(() => {});

@@ -1,0 +1,13 @@
+{
+  "name": "parkevents-api",
+  "private": true,
+  "type": "module",
+  "description": "Email signups and digests for parkevents.nyc",
+  "engines": { "node": "24.x" },
+  "scripts": {
+    "preview": "node scripts/preview.mjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  }
+}
