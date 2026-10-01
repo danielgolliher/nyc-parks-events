@@ -188,7 +188,7 @@ svg.i { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor;
 .cover img, .dhero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Generated covers for events without photos */
-.gen { width: 100%; height: 100%; position: relative; display: grid; align-content: end; padding: 9px; color: #fff; overflow: hidden; }
+.gen { width: 100%; height: 100%; position: relative; display: grid; align-content: end; padding: 9px; color: #fff; overflow: hidden; isolation: isolate; } /* keeps its labels underneath the photo laid over it */
 .gen b { font-size: 25px; font-weight: 800; letter-spacing: -.04em; line-height: .9; position: relative; z-index: 1; }
 .gen small { font: 500 8.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; opacity: .85; position: relative; z-index: 1; margin-top: 4px; }
 .gen::before { content: ""; position: absolute; width: 90%; aspect-ratio: 1; border-radius: 50%; right: -30%; top: -30%; background: rgba(255,255,255,.22); }
@@ -1115,7 +1115,9 @@ footer .credit nav a:hover { text-decoration: underline; }
   async function initMap() {
     const L = await loadLeaflet();
     if (LM) return;
-    LM = L.map('lmap', { zoomControl: false, minZoom: 9, maxZoom: 18, zoomSnap: 0.25, maxBounds: [[40.2, -74.7], [41.2, -73.3]], maxBoundsViscosity: 0.8 });
+    // zoomSnap 0 allows in-between zoom levels, so wheel and pinch zooming can be continuous (see smoothWheelZoom)
+    LM = L.map('lmap', { zoomControl: false, minZoom: 9, maxZoom: 18, zoomSnap: 0, zoomDelta: 0.5, scrollWheelZoom: false, maxBounds: [[40.2, -74.7], [41.2, -73.3]], maxBoundsViscosity: 0.8 });
+    smoothWheelZoom(LM);
     L.control.zoom({ position: 'topright' }).addTo(LM);
     LM.fitBounds(S.boro ? boroBounds(S.boro) || NYC_BOUNDS : NYC_BOUNDS);
     if (BORO_DATA) {
@@ -1123,8 +1125,28 @@ footer .credit nav a:hover { text-decoration: underline; }
       boroLayer = L.layerGroup(BORO_DATA.map((b) => L.polygon(b.r.map((r) => r.map(([x, y]) => [y, x])), { color: accent, weight: 1.2, opacity: 0.55, fillOpacity: 0.04, interactive: false }))).addTo(LM);
     }
     markerLayer = L.layerGroup().addTo(LM);
-    LM.on('zoomend', drawMarkers);
-    LM.on('moveend', renderPanel);
+    // Re-cluster markers and refresh the list once zooming or panning settles, not on every frame
+    let settle;
+    LM.on('zoomend moveend', () => { clearTimeout(settle); settle = setTimeout(() => { drawMarkers(); renderPanel(); }, 120); });
+  }
+  // Trackpad pinches and mouse wheels zoom smoothly around the pointer. Leaflet's built-in wheel zoom
+  // waits for a pause and then jumps a whole step, which feels jerky on a trackpad.
+  function smoothWheelZoom(map) {
+    let target = null, anchor = null, raf = 0;
+    const step = () => {
+      const z = map.getZoom(), next = Math.abs(target - z) < 0.01 ? target : z + (target - z) * 0.35;
+      map.setZoomAround(anchor, next, { animate: false });
+      if (next !== target) raf = requestAnimationFrame(step); else { raf = 0; target = null; }
+    };
+    map.getContainer().addEventListener('wheel', (e) => {
+      e.preventDefault();  // also stops a pinch from zooming the whole page
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 400 : 1);
+      // Pinches arrive as ctrl+wheel with small deltas; mouse wheels send large ones
+      const base = target == null ? map.getZoom() : target;
+      target = Math.max(map.getMinZoom(), Math.min(map.getMaxZoom(), base - dy * (e.ctrlKey ? 1 / 100 : 1 / 300)));
+      anchor = map.mouseEventToContainerPoint(e);
+      if (!raf) raf = requestAnimationFrame(step);
+    }, { passive: false });
   }
   function boroBounds(name) {
     const b = BORO_DATA && BORO_DATA.find((x) => x.n === name); if (!b) return null;
