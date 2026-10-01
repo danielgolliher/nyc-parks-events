@@ -82,6 +82,9 @@ if (/(^|\.)parkevents\.nyc$/.test(location.hostname)) {
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+/* Screen-reader text is positioned inside its button; anchored to the page, text inside the sideways-scrolling day row
+   escaped it, made the page ~2,000px wide, and phones then laid the whole site out zoomed out */
+.pill, .cal-g button { position: relative; }
 html { scroll-padding-top: 60px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--font); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 body.lock { overflow: hidden; }
