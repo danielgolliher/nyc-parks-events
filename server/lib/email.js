@@ -66,8 +66,8 @@ const eventRow = (e, campaign, first) => {
 };
 
 const supportCard = (campaign) => SUPPORT_URL ? card(`
-  <div style="font:700 16px/1.3 ${FONT};color:${C.ink}">Keep this free for everyone</div>
-  <p style="margin:6px 0 14px;font:400 14px/1.55 ${FONT};color:${C.muted}">What's on in NYC Parks is an independent site run by one person, with no ads. If these emails help you get outside, you can chip in $2 or whatever you like.</p>
+  <div style="font:700 16px/1.3 ${FONT};color:${C.ink}">Help keep the site live</div>
+  <p style="margin:6px 0 14px;font:400 14px/1.55 ${FONT};color:${C.muted}">Chip in $2 or more to cover basic site costs, like the domain name and sending email. What's on in NYC Parks is independent and ad-free.</p>
   ${button(`${SUPPORT_URL}${SUPPORT_URL.includes('?') ? '&' : '?'}utm_source=email&utm_campaign=${campaign}`, 'Chip in $2')}`, { bg: C.soft, border: '#c9e7d8' }) : '';
 
 const footerFor = (sub, campaign) => `
@@ -123,7 +123,7 @@ export function digestEmail(sub, sel) {
       ...picks.map((e) => `  ${fmtTime(e.min)}  ${e.title} · ${e.park || e.location}\n  ${siteLink({ event: e.id }, campaign)}`),
       total > picks.length ? `  See all ${total}: ${siteLink({ day, ...(one ? { boro: one } : {}) }, campaign)}` : '', '',
     ]),
-    SUPPORT_URL ? `Keep this free for everyone. Chip in $2: ${SUPPORT_URL}\n` : '',
+    SUPPORT_URL ? `Help keep the site live by covering basic site costs. Chip in $2: ${SUPPORT_URL}\n` : '',
     `Change your settings: ${SITE_URL}/?manage=${sub.token}`, `Unsubscribe: ${SITE_URL}/?unsubscribe=${sub.token}`,
     MAILING_ADDRESS,
   ].filter((l) => l !== undefined).join('\n');

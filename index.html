@@ -512,8 +512,8 @@ footer .src { max-width: 460px; }
       <button class="btn acc signup" type="button" data-signup="footer"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5l8.5 6 8.5-6"/></svg>Sign up for emails</button>
     </div>
     <div class="fcta support" hidden>
-      <b>Help keep this free</b>
-      <span>This site is independent and ad-free, run by one person. If it helps you get outside, chip in $2 or whatever you like.</span>
+      <b>Help keep the site live</b>
+      <span>Chip in $2 or more to cover basic site costs, like the domain name and sending email. The site is independent and ad-free.</span>
       <a class="btn sec support-link" href="#" target="_blank" rel="noopener" data-support="footer"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Chip in $2</a>
     </div>
     <p class="src">Data from <a href="https://data.cityofnewyork.us/City-Government/NYC-Parks-Public-Events-Upcoming-14-Days/w3wp-dpdi/about_data" target="_blank" rel="noopener">NYC Open Data</a>, last updated <span id="fetched">…</span>. The listing refreshes itself each morning after the city publishes new data. Photos come from each event's NYC Parks listing. Events can change; check the event page before you go. This site uses Google Analytics to count visits and see which events people look at.</p>
@@ -1224,7 +1224,7 @@ footer .src { max-width: 460px; }
   // The email API lives in server/ and runs on Vercel. SUPPORT_URL is a Stripe Payment Link;
   // support buttons stay hidden until it's set.
   const API = 'https://parkevents-api.vercel.app';
-  const SUPPORT_URL = '';
+  const SUPPORT_URL = 'https://buy.stripe.com/14AcN5b8k4vp1BRbjc3AY07';
   const FREQ = [
     ['daily', 'Daily', "Each morning: that day's events"],
     ['weekly', 'Weekly', 'Thursday mornings: the next 7 days'],
@@ -1262,7 +1262,7 @@ footer .src { max-width: 460px; }
   $('mclose').addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => { if (e.target === modal || e.target.closest('[data-mclose]')) closeModal(); });
 
-  const supportBox = (where) => SUPPORT_URL ? `<div class="promo"><b>Help keep this free</b><p>This site is independent and ad-free, run by one person. If it's useful to you, chip in $2 or whatever you like.</p><a class="btn acc support-link" href="${esc(SUPPORT_URL)}" target="_blank" rel="noopener" data-support="${where}">${I.heart}Chip in $2</a></div>` : '';
+  const supportBox = (where) => SUPPORT_URL ? `<div class="promo"><b>Help keep the site live</b><p>Chip in $2 or more to cover basic site costs, like the domain name and sending email. The site is independent and ad-free.</p><a class="btn acc support-link" href="${esc(SUPPORT_URL)}" target="_blank" rel="noopener" data-support="${where}">${I.heart}Chip in $2</a></div>` : '';
   const done = (title, text, extra = '') => showModal(title, `<div class="mdone"><span class="ok">${I.check}</span><p>${text}</p></div>${extra}`);
   const loading = (title, text) => showModal(title, `<p class="mspin">${text}</p>`);
   const failed = (title, msg) => showModal(title, `<p class="mlede">${esc(msg)}</p><button class="btn sec big" type="button" data-mclose>Close</button>`);
