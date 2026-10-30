@@ -1,9 +1,8 @@
 {
- "builtAt": 1793300815,
+ "builtAt": 1793385881,
  "imgs": {
   "http://www.nycgovparks.org/common_images/events/6877efab76fa4.jpg": "img/7b8adc0b9e055eff.webp",
   "http://www.nycgovparks.org/common_images/events/698c9509bea7f.JPG": "img/92bcc4a47c203cd4.webp",
-  "http://www.nycgovparks.org/common_images/events/69ea6b7e8c677.jpg": "img/9f65a7865f055ff7.webp",
   "http://www.nycgovparks.org/common_images/events/69f8c801d08e3.png": "img/0aed954f42c77378.webp",
   "http://www.nycgovparks.org/common_images/events/6a6bbbb6c990d.png": "img/c11b7a0e459215e3.webp",
   "http://www.nycgovparks.org/common_images/events/6a7bb1f6a7060.jpg": "img/3cf07f1e4dca7853.webp",
@@ -16,5 +15,5 @@
   "http://www.nycgovparks.org/common_images/events/6a9dabc4d9eeb.jpeg": "img/87bf6bab65b2351e.webp",
   "http://www.nycgovparks.org/common_images/events/6aa94b4e90773.jpg": "img/f9ba5ee76b46bbfe.webp"
  },
- "rowsUpdatedAt": 1793279282
+ "rowsUpdatedAt": 1793365352
 }
